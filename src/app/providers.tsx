@@ -1,11 +1,28 @@
 "use client";
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { meQueryKey } from "@/features/auth/api/use-me";
+import {
+  broadcastUnauthorizedReaction,
+  registerUnauthorizedHandler,
+} from "@/features/auth/lib/clear-session";
+import { setUnauthorizedBroadcastHandler } from "@/lib/api-client";
 import { makeQueryClient } from "@/lib/query-client";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => makeQueryClient());
+
+  useEffect(() => {
+    registerUnauthorizedHandler(() => {
+      queryClient.setQueryData(meQueryKey, null);
+    });
+    setUnauthorizedBroadcastHandler(broadcastUnauthorizedReaction);
+    return () => {
+      registerUnauthorizedHandler(null);
+      setUnauthorizedBroadcastHandler(null);
+    };
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
