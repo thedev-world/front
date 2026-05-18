@@ -13,7 +13,7 @@ async function loadMe(): Promise<MeProfile | null> {
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(text.trim() || `Erreur HTTP ${res.status}`);
+    throw new Error(text.trim() || `HTTP error ${res.status}`);
   }
   return res.json() as Promise<MeProfile>;
 }
@@ -23,5 +23,6 @@ export function useMe() {
     queryKey: meQueryKey,
     queryFn: loadMe,
     retry: false,
+    refetchOnWindowFocus: true,
   });
 }

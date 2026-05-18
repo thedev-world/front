@@ -9,6 +9,12 @@ import {
 } from "@/features/auth/lib/clear-session";
 import { setUnauthorizedBroadcastHandler } from "@/lib/api-client";
 import { makeQueryClient } from "@/lib/query-client";
+import { useAuthSync } from "@/features/auth/api/use-auth-sync";
+
+function AuthSyncManager() {
+  useAuthSync();
+  return null;
+}
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => makeQueryClient());
@@ -25,6 +31,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   }, [queryClient]);
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthSyncManager />
+      {children}
+    </QueryClientProvider>
   );
 }

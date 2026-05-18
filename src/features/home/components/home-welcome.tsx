@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import { GitHubSignInButton } from "@/features/auth/components/github-sign-in-button";
 import { LogoutButton } from "@/features/auth/components/logout-button";
 import { useMe } from "@/features/auth/api/use-me";
+import { cn } from "@/lib/utils";
 
 export function HomeWelcome() {
   const me = useMe();
@@ -24,6 +27,12 @@ export function HomeWelcome() {
               Hey{" "}
               <span className="font-medium">{me.data.github_login}</span>
             </p>
+            <Link
+              href="/profile"
+              className={cn(buttonVariants({ variant: "default" }))}
+            >
+              Open dossier
+            </Link>
             <LogoutButton />
           </>
         ) : (
