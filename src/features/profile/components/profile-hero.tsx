@@ -5,7 +5,9 @@ import { BadgeGlow } from "@/components/ui/badge-glow";
 import { XpBar } from "@/features/profile/components/xp-bar";
 import { formatFullNumber } from "@/features/profile/lib/format";
 import {
-  resolvePlayerClass,
+  BADGE_BY_SLUG,
+  PLAYER_CLASS_FALLBACK,
+  type PlayerClassSlug,
 } from "@/features/profile/lib/player-class";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 
@@ -14,7 +16,8 @@ type Props = {
 };
 
 export function ProfileHero({ profile }: Props) {
-  const klass = resolvePlayerClass(profile.player_class.name);
+  const slug = profile.player_class.name.trim().toLowerCase() as PlayerClassSlug;
+  const badge = BADGE_BY_SLUG[slug] ?? PLAYER_CLASS_FALLBACK.badge;
   const xpDisplay = useCountUp(profile.xp_brut, {
     duration: 1700,
     delay: 250,
@@ -26,7 +29,7 @@ export function ProfileHero({ profile }: Props) {
       style={{ animationDelay: "60ms" }}
     >
       <div className="grid items-center gap-12 md:grid-cols-[280px_1fr] md:gap-16 lg:grid-cols-[320px_1fr] lg:gap-20">
-        <BadgeStage src={klass.badge} alt={`${klass.name} rank`} />
+        <BadgeStage src={badge} alt={`${profile.player_class.name} rank`} />
 
         <div className="flex min-w-0 flex-col gap-10">
           <div className="flex min-w-0 flex-col gap-2">
@@ -38,7 +41,7 @@ export function ProfileHero({ profile }: Props) {
             </div>
 
             <h1 className="text-[clamp(2rem,5vw,3.25rem)] font-semibold leading-[1.1] tracking-tight text-white">
-              {klass.name}
+              {profile.player_class.name}
             </h1>
 
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-muted-foreground">

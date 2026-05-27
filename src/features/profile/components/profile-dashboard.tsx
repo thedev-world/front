@@ -11,7 +11,6 @@ import {
 } from "@/features/profile/components/profile-states";
 import { ProfileStatusBar } from "@/features/profile/components/profile-status-bar";
 import { RankProgression } from "@/features/profile/components/rank-progression";
-import { StatsGrid } from "@/features/profile/components/stats-grid";
 
 export function ProfileDashboard() {
   const me = useMe();
@@ -48,7 +47,6 @@ export function ProfileDashboard() {
             <ProfileHero profile={me.data} />
             <CellsShowcase profile={me.data} />
             <RankProgression profile={me.data} />
-            <StatsGrid profile={me.data} />
           </>
         ) : null}
       </div>

@@ -27,6 +27,8 @@ export type MeProfile = {
   xp_progress: MeXpProgress;
   cell_count: number;
   player_class: MePlayerClass;
+  island: string | null;
+  is_onboarded: boolean;
   last_sync_at: string;
   created_at: string;
   updated_at: string;
