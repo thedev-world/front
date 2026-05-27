@@ -190,6 +190,47 @@
     }
   }
 
+  @keyframes island-rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(36px) scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes island-picker-enter {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes island-picker-leave {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(18px) scale(0.94);
+    }
+  }
+
+  .island-picker-enter {
+    animation: island-picker-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .island-picker-leave {
+    animation: island-picker-leave 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
 
 
   @keyframes badge-breathe {
@@ -224,6 +265,148 @@
 
   .anim-reveal-in {
     animation: reveal-in 1s ease-out both;
+  }
+
+  .anim-island-rise {
+    animation: island-rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes class-flash {
+    0%   { opacity: 0; transform: scale(0.85) translateY(8px); }
+    40%  { opacity: 1; transform: scale(1.06) translateY(0); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .anim-class-flash {
+    animation: class-flash 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* === Rank unlock celebration === */
+
+  @keyframes rank-unlock-slam {
+    from { opacity: 0; transform: translateY(10px) scale(0.92); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Gentle cross-fade + slide-up when swapping between rank badges */
+  @keyframes rank-badge-swap {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .rank-badge-swap {
+    animation: rank-badge-swap 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes rank-rays-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes rank-ring-expand {
+    0%   { transform: scale(0.25); opacity: 0.95; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+
+  @keyframes rank-orbit-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes rank-dot-appear {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .rank-unlock-slam {
+    animation: rank-unlock-slam 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .rank-celebrate-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .rank-rays {
+    position: absolute;
+    inset: -80%;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg 14deg,
+      oklch(0.65 0.2 260 / 0.22) 14deg 23deg,
+      transparent 23deg 58deg,
+      oklch(0.62 0.18 255 / 0.13) 58deg 65deg,
+      transparent 65deg 98deg,
+      oklch(0.65 0.2 260 / 0.19) 98deg 108deg,
+      transparent 108deg 145deg,
+      oklch(0.62 0.18 255 / 0.11) 145deg 152deg,
+      transparent 152deg 183deg,
+      oklch(0.65 0.2 260 / 0.17) 183deg 192deg,
+      transparent 192deg 228deg,
+      oklch(0.62 0.18 255 / 0.13) 228deg 236deg,
+      transparent 236deg 265deg,
+      oklch(0.65 0.2 260 / 0.21) 265deg 275deg,
+      transparent 275deg 308deg,
+      oklch(0.62 0.18 255 / 0.1) 308deg 315deg,
+      transparent 315deg 344deg,
+      oklch(0.65 0.2 260 / 0.16) 344deg 352deg,
+      transparent 352deg 360deg
+    );
+    mask-image: radial-gradient(circle at center, transparent 12%, white 28%, white 58%, transparent 80%);
+    animation: rank-rays-spin 9s linear infinite;
+  }
+
+  .rank-ring {
+    position: absolute;
+    inset: 8%;
+    border-radius: 50%;
+    border: 1px solid oklch(0.68 0.2 262 / 0.75);
+    animation: rank-ring-expand 1.5s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  .rank-ring-2 {
+    animation-delay: 0.22s;
+    border-color: oklch(0.72 0.19 270 / 0.5);
+  }
+
+  .rank-ring-3 {
+    animation-delay: 0.48s;
+    border-color: oklch(0.65 0.18 258 / 0.3);
+  }
+
+  .rank-orbit-wrap {
+    position: absolute;
+    inset: 0;
+    animation: rank-orbit-spin 4.2s linear infinite;
+  }
+
+  .rank-orbit-outer {
+    animation-duration: 6.8s;
+  }
+
+  .rank-orbit-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: oklch(0.85 0.17 266);
+    box-shadow: 0 0 8px 2px oklch(0.65 0.2 260 / 0.9), 0 0 16px 4px oklch(0.62 0.19 260 / 0.4);
+    transform: translate(-50%, -50%) translateX(128px);
+    animation: rank-dot-appear 0.4s ease-out 0.35s both;
+  }
+
+  .rank-orbit-dot-outer {
+    width: 2.5px;
+    height: 2.5px;
+    background: oklch(0.78 0.12 265);
+    box-shadow: 0 0 6px 1.5px oklch(0.62 0.16 260 / 0.7);
+    transform: translate(-50%, -50%) translateX(158px);
   }
 
   .anim-drift {
@@ -278,7 +461,6 @@
     );
   }
 
-  /** Horizontal rank rail: snap + touch + accent scrollbar */
   .rank-rail-scroll {
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -310,7 +492,6 @@
     background: oklch(0.62 0.19 260 / 0.7);
   }
 
-  /** Locked rank: cold finish + mesh — no outer frame (overlay sits on asset) */
   .rank-badge-locked {
     filter: grayscale(1) brightness(0.42) contrast(1.12);
   }

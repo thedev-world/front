@@ -70,7 +70,7 @@ export function BadgeGlow({
         priority={priority}
         draggable={false}
         className={cn(
-          "relative z-10 h-full w-auto max-w-full select-none object-contain",
+          "relative z-10 h-full w-full select-none object-contain",
           imageClassName,
         )}
       />

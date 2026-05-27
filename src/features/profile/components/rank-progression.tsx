@@ -6,10 +6,11 @@ import { BadgeGlow } from "@/components/ui/badge-glow";
 import type { MeProfile } from "@/features/auth/types/me";
 import { SectionTickerHeading } from "@/components/ui/section-ticker-heading";
 import {
-  PLAYER_CLASS_ORDER,
+  PLAYER_CLASS_FALLBACK,
   type PlayerClassMeta,
   resolvePlayerClass,
 } from "@/features/profile/lib/player-class";
+import { usePlayerClasses } from "@/features/onboarding/api/use-player-classes";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -19,18 +20,17 @@ type Props = {
 type NodeState = "cleared" | "current" | "locked";
 
 export function RankProgression({ profile }: Props) {
-  const current = resolvePlayerClass(profile.player_class.name);
+  const { data: playerClasses } = usePlayerClasses();
+  const classes = playerClasses ?? [PLAYER_CLASS_FALLBACK];
+  const current = resolvePlayerClass(profile.player_class.name, classes);
   const percentInCurrent = Math.max(
     0,
     Math.min(100, profile.xp_progress.percent),
   );
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const n = PLAYER_CLASS_ORDER.length;
-  /**
-   * Progress along the spine from tier 1 center → tier n center (n−1 segments).
-   * p = 0 at T01 center, p = 1 at T0n center. Matches XP % within current tier.
-   */
+  const n = classes.length;
+  // Progress along spine from tier 1 -> tier n (n−1 segments), matched to XP %
   const p = Math.min(
     1,
     Math.max(
@@ -46,7 +46,7 @@ export function RankProgression({ profile }: Props) {
     el.scrollBy({ left: dir * step, behavior: "smooth" });
   }, []);
 
-  /** Center the user's current rank in the rail when profile data is shown. */
+  /** Center the user's current rank in the rail */
   useLayoutEffect(() => {
     const sc = scrollRef.current;
     if (!sc) return;
@@ -126,7 +126,7 @@ export function RankProgression({ profile }: Props) {
                   className="rank-rail-row relative min-w-max"
                   style={{ "--rank-n": n } as React.CSSProperties}
                 >
-                  {/* Spine: centers T01…T0n; same geometry as flex gap via --rank-gap */}
+                  {/* Spine connecting ranks; filled to progress */}
                   <div
                     aria-hidden="true"
                     className="rank-spine pointer-events-none absolute top-[2.875rem] z-0 h-px sm:top-[3.375rem]"
@@ -144,7 +144,7 @@ export function RankProgression({ profile }: Props) {
                   </div>
 
                   <ol className="relative z-10 flex min-w-max flex-nowrap items-start gap-[var(--rank-gap)]">
-                    {PLAYER_CLASS_ORDER.map((rank) => {
+                    {classes.map((rank) => {
                       const state: NodeState =
                         rank.tier < current.tier
                           ? "cleared"
@@ -197,8 +197,7 @@ function RankNode({
 
       <div
         className={cn(
-          "relative z-10 flex w-full items-center justify-center transition-all duration-500",
-          "py-1",
+          "relative z-10 flex w-full items-center justify-center transition-all duration-500 py-1",
           state === "current" && "scale-[1.12] sm:scale-[1.15]",
         )}
       >

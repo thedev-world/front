@@ -14,82 +14,45 @@ export type PlayerClassMeta = {
   tier: number;
   requiredLevel: number;
   badge: string;
+  phrase: string;
 };
 
-const PLAYER_CLASSES: Record<PlayerClassSlug, PlayerClassMeta> = {
-  seedling: {
-    slug: "seedling",
-    name: "Seedling",
-    tier: 1,
-    requiredLevel: 1,
-    badge: "/images/ranking-badges/seedling-badge.png",
-  },
-  builder: {
-    slug: "builder",
-    name: "Builder",
-    tier: 2,
-    requiredLevel: 5,
-    badge: "/images/ranking-badges/builder-badge.png",
-  },
-  crafter: {
-    slug: "crafter",
-    name: "Crafter",
-    tier: 3,
-    requiredLevel: 10,
-    badge: "/images/ranking-badges/crafter-badge.png",
-  },
-  architect: {
-    slug: "architect",
-    name: "Architect",
-    tier: 4,
-    requiredLevel: 20,
-    badge: "/images/ranking-badges/architect-badge.png",
-  },
-  maintainer: {
-    slug: "maintainer",
-    name: "Maintainer",
-    tier: 5,
-    requiredLevel: 35,
-    badge: "/images/ranking-badges/maintainer-badge.png",
-  },
-  legend: {
-    slug: "legend",
-    name: "Legend",
-    tier: 6,
-    requiredLevel: 55,
-    badge: "/images/ranking-badges/legend-badge.png",
-  },
-  sovereign: {
-    slug: "sovereign",
-    name: "Sovereign",
-    tier: 7,
-    requiredLevel: 80,
-    badge: "/images/ranking-badges/sovereign-badge.png",
-  },
-  founder: {
-    slug: "founder",
-    name: "Founder",
-    tier: 8,
-    requiredLevel: 100,
-    badge: "/images/ranking-badges/founder-badge.png",
-  },
+/** Badge paths are UI-only assets. */
+export const BADGE_BY_SLUG: Record<PlayerClassSlug, string> = {
+  seedling:   "/images/ranking-badges/seedling-badge.png",
+  builder:    "/images/ranking-badges/builder-badge.png",
+  crafter:    "/images/ranking-badges/crafter-badge.png",
+  architect:  "/images/ranking-badges/architect-badge.png",
+  maintainer: "/images/ranking-badges/maintainer-badge.png",
+  legend:     "/images/ranking-badges/legend-badge.png",
+  sovereign:  "/images/ranking-badges/sovereign-badge.png",
+  founder:    "/images/ranking-badges/founder-badge.png",
 };
 
-export const PLAYER_CLASS_ORDER: PlayerClassMeta[] = Object.values(
-  PLAYER_CLASSES,
-).sort((a, b) => a.tier - b.tier);
+/** Fallback used in loading states and SSR. */
+export const PLAYER_CLASS_FALLBACK: PlayerClassMeta = {
+  slug: "seedling",
+  name: "Seedling",
+  tier: 1,
+  requiredLevel: 1,
+  badge: BADGE_BY_SLUG.seedling,
+  phrase: "It compiles. That's something.",
+};
 
-const FALLBACK = PLAYER_CLASSES.seedling;
-
-export function resolvePlayerClass(name: string | undefined): PlayerClassMeta {
-  const key = name?.trim().toLowerCase() as PlayerClassSlug | undefined;
-  if (!key) return FALLBACK;
-  return PLAYER_CLASSES[key] ?? FALLBACK;
+export function resolvePlayerClass(
+  name: string | undefined,
+  classes: PlayerClassMeta[],
+): PlayerClassMeta {
+  if (!name) return PLAYER_CLASS_FALLBACK;
+  const key = name.trim().toLowerCase() as PlayerClassSlug;
+  return classes.find((c) => c.slug === key) ?? PLAYER_CLASS_FALLBACK;
 }
 
-export function nextPlayerClass(name: string): PlayerClassMeta | null {
-  const current = resolvePlayerClass(name);
-  return (
-    PLAYER_CLASS_ORDER.find((c) => c.tier === current.tier + 1) ?? null
-  );
+export function nextPlayerClass(
+  name: string,
+  classes: PlayerClassMeta[],
+): PlayerClassMeta | null {
+  const current = resolvePlayerClass(name, classes);
+  return classes.find((c) => c.tier === current.tier + 1) ?? null;
 }
+
