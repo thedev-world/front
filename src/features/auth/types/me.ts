@@ -30,6 +30,7 @@ export type MeProfile = {
   island: string | null;
   is_onboarded: boolean;
   last_sync_at: string;
+  next_sync_at: string | null;
   created_at: string;
   updated_at: string;
 };

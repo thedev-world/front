@@ -42,7 +42,7 @@ export function ProfileDashboard() {
           <>
             <ProfileStatusBar
               githubLogin={me.data.github_login}
-              lastSyncAt={me.data.last_sync_at}
+              nextSyncAt={me.data.next_sync_at}
             />
             <ProfileHero profile={me.data} />
             <CellsShowcase profile={me.data} />
