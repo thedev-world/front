@@ -17,15 +17,15 @@ const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 const EMPTY_PROGRESS = { level: 1, xpInLevel: 0, xpNeeded: 0, percent: 0 };
 
-export function useRankRevealSequence(targetXp: number, xpMath: XpMath | null) {
+export function useRankRevealSequence(targetXp: number, xpMath: XpMath | null, startXp = 0) {
   const segments = useMemo(
-    () => xpMath?.buildRevealSegments(targetXp) ?? [],
-    [targetXp, xpMath],
+    () => xpMath?.buildRevealSegments(targetXp, startXp) ?? [],
+    [targetXp, startXp, xpMath],
   );
 
   const [segmentIndex, setSegmentIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("animating");
-  const [animatedXp, setAnimatedXp] = useState(0);
+  const [animatedXp, setAnimatedXp] = useState(startXp);
 
   // advanceToNext uses segmentIndex directly; recreated when segmentIndex changes
   const advanceToNext = useCallback(() => {

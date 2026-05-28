@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Hexagon } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,11 +15,26 @@ import { createXpMath } from "../lib/xp-math";
 import { useRankRevealSequence } from "../lib/use-rank-reveal-sequence";
 import { useXpConfig } from "../api/use-xp-config";
 import { usePlayerClasses } from "../api/use-player-classes";
+import type { SyncDiffSummary } from "@/features/auth/types/sync";
 
-export function LevelReveal() {
+
+export function LevelReveal({
+  startXp,
+  endXp,
+  onDone,
+  ctaLabel = "Enter Devplanet",
+  diffSummary,
+}: {
+  startXp?: number;
+  endXp?: number;
+  onDone?: () => void;
+  ctaLabel?: string;
+  diffSummary?: SyncDiffSummary;
+} = {}) {
   const router = useRouter();
   const { data: me } = useMe();
-  const xpBrut = me?.xp_brut ?? 0;
+  const xpBrut = endXp ?? me?.xp_brut ?? 0;
+  const resolvedStartXp = startXp ?? 0;
 
   const { data: xpConfig } = useXpConfig();
   const { data: playerClasses } = usePlayerClasses();
@@ -39,7 +55,7 @@ export function LevelReveal() {
     finalProgress,
     isComplete,
     finalClass,
-  } = useRankRevealSequence(xpBrut, xpMath);
+  } = useRankRevealSequence(xpBrut, xpMath, resolvedStartXp);
 
   const displayClass = isComplete ? finalClass : segment?.targetClass ?? finalClass;
   const isMilestoneSegment = segment?.pauseAfter ?? false;
@@ -366,6 +382,72 @@ export function LevelReveal() {
         </div>
       </div>
 
+      {/* Sync debrief — only in sync dialog mode */}
+      {diffSummary && (
+        <div
+          className={cn(
+            "flex flex-col items-center gap-3 transition-all duration-700",
+            isComplete ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-2",
+          )}
+        >
+          <div className="flex items-center gap-3 text-xs">
+            {/* XP gained */}
+            <div className="flex items-center gap-1.5 rounded-sm border border-white/[0.06] bg-white/[0.03] px-2.5 py-1.5">
+              <span className="ticker-tabular font-medium text-hi">
+                +{formatFullNumber(diffSummary.xpGained)}
+              </span>
+              <span className="ticker uppercase tracking-[0.22em] text-muted-foreground">xp</span>
+            </div>
+
+            <span className="text-muted-foreground/30">·</span>
+
+            {/* Level */}
+            <div className="flex items-center gap-1.5 rounded-sm border border-white/[0.06] bg-white/[0.03] px-2.5 py-1.5">
+              <span className="ticker uppercase tracking-[0.22em] text-muted-foreground">lvl</span>
+              {diffSummary.levelAfter > diffSummary.levelBefore ? (
+                <>
+                  <span className="ticker-tabular text-muted-foreground/60">{diffSummary.levelBefore}</span>
+                  <ArrowRight
+                    weight="duotone"
+                    size={13}
+                    aria-hidden
+                    className="shrink-0 text-hi/70"
+                    style={{
+                      filter: "drop-shadow(0 0 4px oklch(0.62 0.19 260 / 0.55))",
+                    }}
+                  />
+                  <span className="ticker-tabular font-medium text-hi">{diffSummary.levelAfter}</span>
+                </>
+              ) : (
+                <span className="ticker-tabular text-foreground/60">{diffSummary.levelAfter}</span>
+              )}
+            </div>
+
+            {/* Cells — only show if gained */}
+            {diffSummary.cellAfter > diffSummary.cellBefore && (
+              <>
+                <span className="text-muted-foreground/30">·</span>
+                <div className="flex items-center gap-1.5 rounded-sm border border-white/[0.06] bg-white/[0.03] px-2.5 py-1.5">
+                  <Hexagon
+                    aria-hidden
+                    strokeWidth={1}
+                    size={11}
+                    className="text-hi"
+                    style={{ filter: "drop-shadow(0 0 4px oklch(0.62 0.19 260 / 0.5))" }}
+                  />
+                  <span className="ticker-tabular font-medium text-hi">
+                    +{diffSummary.cellAfter - diffSummary.cellBefore}
+                  </span>
+                  <span className="ticker uppercase tracking-[0.22em] text-muted-foreground">
+                    {diffSummary.cellAfter - diffSummary.cellBefore === 1 ? "cell" : "cells"}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div
         className={cn(
           "mt-2 transition-opacity duration-500",
@@ -373,10 +455,10 @@ export function LevelReveal() {
         )}
       >
         <Button
-          onClick={() => router.push("/profile")}
+          onClick={onDone ?? (() => router.push("/profile"))}
           className="h-10 px-8 text-sm tracking-wide"
         >
-          Enter Devplanet
+          {ctaLabel}
         </Button>
       </div>
     </div>

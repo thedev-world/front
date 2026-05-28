@@ -69,8 +69,8 @@ export function createXpMath(config: XpConfig) {
     return current;
   }
 
-  function buildRevealSegments(targetXp: number): RevealSegment[] {
-    if (targetXp <= 0) return [];
+  function buildRevealSegments(targetXp: number, startXp = 0): RevealSegment[] {
+    if (targetXp <= startXp) return [];
 
     const finalLevel = getLevel(targetXp);
     const finalClass = getPlayerClassForLevel(finalLevel);
@@ -80,11 +80,13 @@ export function createXpMath(config: XpConfig) {
     );
 
     const segments: RevealSegment[] = [];
-    let fromXp = 0;
+    let fromXp = startXp;
 
     for (const cls of passedTiers) {
       const nextTier = config.playerClasses.find((c) => c.tier === cls.tier + 1);
       const toXp = nextTier ? xpForLevel(nextTier.requiredLevel) : targetXp;
+      // Skip tier if the user already passed it before this sync
+      if (toXp <= startXp) continue;
       segments.push({ targetClass: cls, fromXp, toXp, pauseAfter: true });
       fromXp = toXp;
     }
