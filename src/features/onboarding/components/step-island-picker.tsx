@@ -127,12 +127,12 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="h-8 w-24 animate-pulse rounded-full bg-muted"
+                className="h-8 w-24 animate-pulse bg-muted"
               />
             ))}
           </div>
         ) : (
-          <div className="flex max-w-2xl flex-wrap justify-center gap-2.5">
+          <div className="flex max-w-2xl flex-wrap justify-center gap-2">
             {islands.map((island) => (
               <button
                 key={island.value}
@@ -140,10 +140,10 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
                 onMouseEnter={() => handleMouseEnter(island.value)}
                 onMouseLeave={handleMouseLeave}
                 className={cn(
-                  "rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-150",
+                  "border px-4 py-1.5 text-sm font-medium transition-all duration-150",
                   selected === island.value
-                    ? "border-hi bg-hi/10 text-foreground ring-1 ring-hi/40"
-                    : "border-border bg-transparent text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                    ? "border-hi bg-hi/10 text-foreground"
+                    : "border-white/[0.12] text-muted-foreground hover:border-white/30 hover:text-foreground",
                 )}
               >
                 {island.label}
