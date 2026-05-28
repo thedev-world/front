@@ -1,13 +1,15 @@
 "use client";
 
-import { formatRelativeTime } from "@/features/profile/lib/format";
+import { useNextSyncCountdown } from "@/features/profile/lib/use-next-sync-countdown";
 
 type Props = {
   githubLogin: string;
-  lastSyncAt: string;
+  nextSyncAt: string | null;
 };
 
-export function ProfileStatusBar({ githubLogin, lastSyncAt }: Props) {
+export function ProfileStatusBar({ githubLogin, nextSyncAt }: Props) {
+  const { countdown, isReady } = useNextSyncCountdown(nextSyncAt);
+
   return (
     <header className="anim-reveal-in flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-white/5 pb-5 text-xs">
       <span className="ticker uppercase tracking-[0.22em]">
@@ -17,10 +19,14 @@ export function ProfileStatusBar({ githubLogin, lastSyncAt }: Props) {
       </span>
 
       <span className="ml-auto flex items-baseline gap-2 text-xs uppercase tracking-[0.22em]">
-        <span className="text-muted-foreground/60">updated</span>
-        <span className="ticker tracking-normal normal-case text-muted-foreground">
-          {formatRelativeTime(lastSyncAt)}
+        <span className={isReady ? "text-hi/80" : "text-muted-foreground/60"}>
+          {isReady ? "sync ready" : "next sync in"}
         </span>
+        {!isReady && countdown && (
+          <span className="ticker tracking-normal normal-case tabular-nums text-muted-foreground">
+            {countdown}
+          </span>
+        )}
       </span>
     </header>
   );
