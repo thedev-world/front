@@ -1,10 +1,11 @@
 import { apiFetch } from "@/lib/api-client";
+import type { MeSyncResponse } from "../types/sync";
 
 /**
  * Trigger a synchronization of the user's data (GitHub profile, stats, etc.)
  * from the backend.
  */
-export async function syncUser(): Promise<{ sync_performed: boolean }> {
+export async function syncUser(): Promise<MeSyncResponse> {
   const res = await apiFetch("/api/v1/me/sync", {
     method: "POST",
   });
@@ -14,5 +15,5 @@ export async function syncUser(): Promise<{ sync_performed: boolean }> {
     throw new Error(text.trim() || `HTTP error ${res.status}`);
   }
 
-  return res.json() as Promise<{ sync_performed: boolean }>;
+  return res.json() as Promise<MeSyncResponse>;
 }
