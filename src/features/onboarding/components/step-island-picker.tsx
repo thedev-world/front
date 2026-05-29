@@ -154,9 +154,9 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
       </div>
 
       {/* Bottom zone: island bleeds off the bottom-left corner, button anchors at bottom-right */}
-      <div className="relative flex-1 min-h-48 sm:min-h-60">
+      <div className="relative flex-1 min-h-64 sm:min-h-80">
         {/* Island — oversized, translated off the left and bottom edges */}
-        <div className="pointer-events-none absolute bottom-0 left-0 h-[18rem] w-[18rem] translate-y-12 -translate-x-8 sm:h-[22rem] sm:w-[22rem] sm:translate-y-14 sm:-translate-x-10">
+        <div className="pointer-events-none absolute bottom-0 left-0 h-[20rem] w-[20rem] translate-y-20 -translate-x-16 sm:h-[32rem] sm:w-[32rem] sm:translate-y-24 sm:-translate-x-20">
           {leaving && (
             <div
               key={`leave-${leaving}`}
