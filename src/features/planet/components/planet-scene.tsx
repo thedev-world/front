@@ -8,6 +8,7 @@ import * as THREE from "three"
 
 import { usePlanetData } from "../api/use-planet-data"
 
+import { IslandLabels } from "./island-labels"
 import { IslandTerritories } from "./island-territories"
 import { OceanPlanet } from "./ocean-planet"
 import { StarField } from "./star-field"
@@ -50,7 +51,10 @@ export function PlanetScene() {
       <PlanetGroup>
         <OceanPlanet />
         {snapshot && (
-          <IslandTerritories key={snapshot.version} snapshot={snapshot} />
+          <>
+            <IslandTerritories key={snapshot.version} snapshot={snapshot} />
+            <IslandLabels islands={snapshot.islands} />
+          </>
         )}
       </PlanetGroup>
 

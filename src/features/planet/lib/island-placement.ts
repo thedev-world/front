@@ -306,7 +306,7 @@ export function buildPlanetSnapshot(
 
     return {
       id,
-      name: id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, " "),
+      name: id.charAt(0).toUpperCase() + id.slice(1).replace(/[-_]/g, " "),
       anchor: anchors[i] || [Math.PI / 2, (i * Math.PI * 2) / islandIds.length],
       color: getIslandColor(id),
       cellCount: totalCells,
