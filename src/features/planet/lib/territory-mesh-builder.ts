@@ -19,6 +19,11 @@ import { islandTangentFrame, PLANET_RADIUS } from "./planet-projection"
 const TERRAIN_HEIGHT_RATIO = 0.5
 const BORDER_DELTA_RATIO = 0.025
 
+// Minimum terrain height above the ocean sphere surface.
+// Ocean wave amplitudes sum to at most 0.019 units — this floor adds a small
+// safety margin so cells always emerge naturally from the water.
+const MIN_TERRAIN_HEIGHT = 0.025
+
 // Jitter amount relative to cellSize (organic hand-drawn feel)
 const JITTER_AMOUNT = 0.12
 
@@ -201,7 +206,7 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
     const totalInIsland = devsPerIsland.get(territory.islandId) || 1
     const topColor = territoryColor(island, currentIdx, totalInIsland)
     const cliffColor = wallColor(topColor)
-    const cellHeight = cs * TERRAIN_HEIGHT_RATIO
+    const cellHeight = Math.max(cs * TERRAIN_HEIGHT_RATIO, MIN_TERRAIN_HEIGHT)
     const bottomScale = PLANET_RADIUS / (PLANET_RADIUS + cellHeight)
     const borderElevation =
       (PLANET_RADIUS + cellHeight + borderDelta) / (PLANET_RADIUS + cellHeight)

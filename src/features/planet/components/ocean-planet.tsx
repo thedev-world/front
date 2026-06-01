@@ -13,10 +13,10 @@ const OCEAN_VERT = `
   void main() {
     vec3 p = position;
     float wave =
-      sin(p.x * 4.0 + uTime * 0.9) * 0.018 +
-      sin(p.y * 3.2 + uTime * 0.7) * 0.014 +
-      sin(p.z * 5.0 + uTime * 1.1) * 0.010 +
-      sin((p.x + p.z) * 2.5 + uTime * 0.5) * 0.012;
+      sin(p.x * 4.0 + uTime * 0.9) * 0.006 +
+      sin(p.y * 3.2 + uTime * 0.7) * 0.005 +
+      sin(p.z * 5.0 + uTime * 1.1) * 0.004 +
+      sin((p.x + p.z) * 2.5 + uTime * 0.5) * 0.004;
     vec3 displaced = normalize(p) * (length(p) + wave);
     vPos = displaced;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
