@@ -1,9 +1,11 @@
-import { HomeWelcome } from "@/features/home/components/home-welcome";
+import { AuthHeader } from "@/features/auth/components/auth-header"
+import { PlanetHome } from "@/features/planet/components/planet-home"
 
 export default function HomePage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-      <HomeWelcome />
+    <div className="relative h-screen w-screen overflow-hidden bg-zinc-950">
+      <AuthHeader />
+      <PlanetHome />
     </div>
-  );
+  )
 }
