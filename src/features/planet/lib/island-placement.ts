@@ -281,17 +281,40 @@ function bfsGrow(
 
 /**
  * Compute appropriate cellSize so territories don't overflow the sphere.
- * Approximation: total hex area should cover at most ~40% of sphere surface.
+ *
+ * Two constraints, the stricter one wins:
+ *  1. Global coverage: total hex area ≤ 35% of sphere surface.
+ *  2. Per-island angular budget: the largest island must fit within its
+ *     Fibonacci–Voronoi cell (angular radius ≈ sqrt(4π/N) / 2).
+ *     This prevents large islands from bleeding into their neighbours.
  */
-function computeCellSize(totalCells: number): number {
-  const sphereSurfaceArea = 4 * Math.PI * 25 // PLANET_RADIUS^2 = 25
-  const maxCoverage = 0.35
-  const availableArea = sphereSurfaceArea * maxCoverage
-  // Each hex cell area ≈ (3√3/2) * cellSize^2
-  const hexArea = (3 * Math.sqrt(3)) / 2
-  const targetCellArea = availableArea / Math.max(totalCells, 1)
-  const cs = Math.sqrt(targetCellArea / hexArea)
-  // Clamp between reasonable bounds
+function computeCellSize(
+  totalCells: number,
+  islandCount: number,
+  maxIslandCells: number,
+): number {
+  const PLANET_RADIUS = 5
+  const HEX_AREA = (3 * Math.sqrt(3)) / 2 // area of unit hex
+
+  // Constraint 1: global coverage
+  const sphereSurfaceArea = 4 * Math.PI * PLANET_RADIUS * PLANET_RADIUS
+  const availableArea = sphereSurfaceArea * 0.35
+  const csFromCoverage = Math.sqrt(
+    availableArea / Math.max(totalCells, 1) / HEX_AREA,
+  )
+
+  // Constraint 2: per-island angular budget
+  // Each island owns ~4π/N steradians → angular radius ≈ sqrt(4π/N)/2 rad.
+  // Physical radius budget = angular_radius * PLANET_RADIUS.
+  // Island footprint radius ≈ HEX_PACK * sqrt(maxIslandCells) * cellSize.
+  const SAFETY = 0.90 // ~5% breathing room — islands nearly touch but don't overlap
+  const HEX_PACK = 1.1 // empirical hex-packing radius factor
+  const angularRadius = Math.sqrt((4 * Math.PI) / Math.max(islandCount, 1)) / 2
+  const physicalBudget = SAFETY * angularRadius * PLANET_RADIUS
+  const csFromAngular =
+    physicalBudget / (HEX_PACK * Math.sqrt(Math.max(maxIslandCells, 1)))
+
+  const cs = Math.min(csFromCoverage, csFromAngular)
   return Math.max(0.04, Math.min(0.25, cs))
 }
 
@@ -301,31 +324,43 @@ function computeCellSize(totalCells: number): number {
 export function buildPlanetSnapshot(
   apiResponse: PlanetApiResponse,
 ): PlanetSnapshot {
-  const islandIds = Object.keys(apiResponse.islands)
-  const anchors = fibonacciSphereAnchors(islandIds.length)
+  // Pre-compute each island's developer list so we can sort by size.
+  // Largest islands are placed first on the Fibonacci spiral: consecutive
+  // Fibonacci points are separated by the golden angle (~137.5°), so the
+  // biggest islands end up maximally spread across the sphere.
+  const islandEntries = Object.entries(apiResponse.islands)
+    .map(([id, devList]) => ({
+      id,
+      devs: devList.map(([login, cellCount]) => ({ login, cellCount })),
+    }))
+    .sort((a, b) => {
+      const totalA = a.devs.reduce((s, d) => s + d.cellCount, 0)
+      const totalB = b.devs.reduce((s, d) => s + d.cellCount, 0)
+      return totalB - totalA
+    })
+
+  const anchors = fibonacciSphereAnchors(islandEntries.length)
 
   let allTerritories: Territory[] = []
   let grandTotalCells = 0
+  let maxIslandCells = 0
 
-  const islands: Island[] = islandIds.map((id, i) => {
-    const devs = apiResponse.islands[id].map(([login, cellCount]) => ({
-      login,
-      cellCount,
-    }))
+  const islands: Island[] = islandEntries.map(({ id, devs }, i) => {
     const { territories, totalCells } = growTerritories(devs, id)
     allTerritories = allTerritories.concat(territories)
     grandTotalCells += totalCells
+    if (totalCells > maxIslandCells) maxIslandCells = totalCells
 
     return {
       id,
       name: id.charAt(0).toUpperCase() + id.slice(1).replace(/[-_]/g, " "),
-      anchor: anchors[i] || [Math.PI / 2, (i * Math.PI * 2) / islandIds.length],
+      anchor: anchors[i] || [Math.PI / 2, (i * Math.PI * 2) / islandEntries.length],
       color: getIslandColor(id),
       cellCount: totalCells,
     }
   })
 
-  const cellSize = computeCellSize(grandTotalCells)
+  const cellSize = computeCellSize(grandTotalCells, islandEntries.length, maxIslandCells)
 
   return {
     version: apiResponse.updated_at,
