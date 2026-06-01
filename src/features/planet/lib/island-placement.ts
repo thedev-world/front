@@ -81,9 +81,14 @@ function fibonacciSphereAnchors(n: number): [number, number][] {
 }
 
 /**
- * BFS flood-fill to grow territories within an island.
- * Each developer starts from a seed cell and grows outward.
- * Territories cannot overlap.
+ * Sequential additive territory growth.
+ *
+ * Each developer is placed in API order (stable across updates).
+ * Each territory seeds on the frontier of the existing mass, then BFS-grows
+ * outward. This guarantees:
+ * - No holes (every territory touches the existing mass)
+ * - No starvation (infinite hex grid = always room outward)
+ * - Stability (a dev's position only depends on devs placed before them)
  */
 function growTerritories(
   developers: { login: string; cellCount: number }[],
@@ -92,22 +97,38 @@ function growTerritories(
   const occupied = new Set<string>()
   const territories: Territory[] = []
 
-  // Sort by cell count descending so largest territories seed first (better packing)
-  const sorted = [...developers].sort((a, b) => b.cellCount - a.cellCount)
+  // Track the frontier of the entire occupied mass
+  // (free cells adjacent to at least one occupied cell)
+  const massFrontier = new Set<string>()
 
-  // Spiral seed placement: place each dev's seed progressively outward
-  let seedRing = 0
-  let seedIndex = 0
+  for (let i = 0; i < developers.length; i++) {
+    const dev = developers[i]
 
-  for (const dev of sorted) {
-    // Find a free seed cell
-    const seed = findFreeSeed(occupied, seedRing)
-    seedRing = Math.floor(Math.sqrt(seedIndex + 1))
-    seedIndex++
+    // First dev seeds at center; subsequent devs seed on the mass frontier
+    let seed: HexCell
+    if (i === 0) {
+      seed = { q: 0, r: 0 }
+    } else {
+      seed = pickBestFrontierSeed(massFrontier, occupied)
+    }
 
     // BFS growth from seed
     const cells = bfsGrow(seed, dev.cellCount, occupied)
-    cells.forEach((c) => occupied.add(hexKey(c.q, c.r)))
+
+    // Mark cells as occupied and update mass frontier
+    for (const c of cells) {
+      const key = hexKey(c.q, c.r)
+      occupied.add(key)
+      massFrontier.delete(key) // no longer free
+
+      // Add this cell's free neighbors to the mass frontier
+      for (const [dq, dr] of HEX_DIRECTIONS) {
+        const nKey = hexKey(c.q + dq, c.r + dr)
+        if (!occupied.has(nKey)) {
+          massFrontier.add(nKey)
+        }
+      }
+    }
 
     territories.push({
       login: dev.login,
@@ -120,40 +141,31 @@ function growTerritories(
   return { territories, totalCells: occupied.size }
 }
 
-function findFreeSeed(
+/**
+ * Pick the best seed from the mass frontier.
+ * Prefers cells closest to the center (keeps island compact).
+ */
+function pickBestFrontierSeed(
+  massFrontier: Set<string>,
   occupied: Set<string>,
-  startRing: number,
 ): HexCell {
-  // Spiral outward from center to find first free cell
-  if (!occupied.has(hexKey(0, 0))) return { q: 0, r: 0 }
+  let bestCell: HexCell = { q: 0, r: 0 }
+  let bestDist = Infinity
 
-  for (let ring = startRing; ring < 100; ring++) {
-    const cells = hexRing(ring)
-    for (const cell of cells) {
-      if (!occupied.has(hexKey(cell.q, cell.r))) return cell
+  for (const key of massFrontier) {
+    if (occupied.has(key)) continue
+    const [q, r] = key.split(",").map(Number)
+    // Axial distance from center
+    const dist = (Math.abs(q) + Math.abs(q + r) + Math.abs(r)) / 2
+    if (dist < bestDist) {
+      bestDist = dist
+      bestCell = { q, r }
     }
   }
-  // Fallback
-  return { q: startRing + 50, r: 0 }
+
+  return bestCell
 }
 
-function hexRing(ring: number): HexCell[] {
-  if (ring === 0) return [{ q: 0, r: 0 }]
-
-  const results: HexCell[] = []
-  let q = ring
-  let r = 0
-
-  for (let dir = 0; dir < 6; dir++) {
-    for (let step = 0; step < ring; step++) {
-      results.push({ q, r })
-      const [dq, dr] = HEX_DIRECTIONS[(dir + 2) % 6]
-      q += dq
-      r += dr
-    }
-  }
-  return results
-}
 
 function bfsGrow(
   seed: HexCell,
