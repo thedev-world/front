@@ -109,7 +109,7 @@ function growTerritories(
     if (i === 0) {
       seed = { q: 0, r: 0 }
     } else {
-      seed = pickBestFrontierSeed(massFrontier, occupied)
+      seed = pickBestFrontierSeed(massFrontier, occupied, dev.cellCount)
     }
 
     // BFS growth from seed
@@ -138,32 +138,126 @@ function growTerritories(
     })
   }
 
+  // Post-processing: fill interior holes (cells surrounded on 5-6 sides)
+  // Assign them to the neighboring territory with the most adjacent cells
+  const cellOwner = new Map<string, number>()
+  territories.forEach((t, idx) => {
+    t.cells.forEach((c) => cellOwner.set(hexKey(c.q, c.r), idx))
+  })
+
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const key of massFrontier) {
+      if (occupied.has(key)) continue
+      const [q, r] = key.split(",").map(Number)
+      let occupiedCount = 0
+      const neighborOwners = new Map<number, number>()
+      for (const [dq, dr] of HEX_DIRECTIONS) {
+        const nKey = hexKey(q + dq, r + dr)
+        if (occupied.has(nKey)) {
+          occupiedCount++
+          const owner = cellOwner.get(nKey)
+          if (owner !== undefined) {
+            neighborOwners.set(owner, (neighborOwners.get(owner) || 0) + 1)
+          }
+        }
+      }
+      // Only fill if surrounded on 5+ sides
+      if (occupiedCount >= 5 && neighborOwners.size > 0) {
+        let bestOwner = 0
+        let bestCount = 0
+        for (const [owner, count] of neighborOwners) {
+          if (count > bestCount) { bestCount = count; bestOwner = owner }
+        }
+        const cell: HexCell = { q, r }
+        territories[bestOwner].cells.push(cell)
+        cellOwner.set(key, bestOwner)
+        occupied.add(key)
+        massFrontier.delete(key)
+        // Update frontier
+        for (const [dq, dr] of HEX_DIRECTIONS) {
+          const nKey = hexKey(q + dq, r + dr)
+          if (!occupied.has(nKey)) massFrontier.add(nKey)
+        }
+        changed = true
+      }
+    }
+  }
+
   return { territories, totalCells: occupied.size }
 }
 
 /**
  * Pick the best seed from the mass frontier.
- * Prefers cells closest to the center (keeps island compact).
+ * Ensures the seed has enough reachable free cells for the territory to grow.
+ * Among valid seeds, prefers those closer to center (compact island shape).
  */
 function pickBestFrontierSeed(
   massFrontier: Set<string>,
   occupied: Set<string>,
+  cellsNeeded: number,
 ): HexCell {
-  let bestCell: HexCell = { q: 0, r: 0 }
-  let bestDist = Infinity
-
+  // Build candidate list sorted by distance to center
+  const candidates: { q: number; r: number; dist: number }[] = []
   for (const key of massFrontier) {
     if (occupied.has(key)) continue
     const [q, r] = key.split(",").map(Number)
-    // Axial distance from center
     const dist = (Math.abs(q) + Math.abs(q + r) + Math.abs(r)) / 2
-    if (dist < bestDist) {
-      bestDist = dist
-      bestCell = { q, r }
-    }
+    candidates.push({ q, r, dist })
+  }
+  candidates.sort((a, b) => a.dist - b.dist)
+
+  // For each candidate (closest first), check if it has enough reachable cells
+  for (const c of candidates) {
+    const reachable = countReachable(c.q, c.r, occupied, cellsNeeded)
+    if (reachable >= cellsNeeded) return { q: c.q, r: c.r }
   }
 
+  // Fallback: pick the one with the most reachable cells
+  let bestCell: HexCell = { q: candidates[0]?.q ?? 0, r: candidates[0]?.r ?? 0 }
+  let bestReachable = 0
+  // Only check a subset to avoid O(n²) on huge frontiers
+  const toCheck = candidates.slice(0, Math.min(candidates.length, 50))
+  for (const c of toCheck) {
+    const reachable = countReachable(c.q, c.r, occupied, cellsNeeded)
+    if (reachable > bestReachable) {
+      bestReachable = reachable
+      bestCell = { q: c.q, r: c.r }
+    }
+  }
   return bestCell
+}
+
+/**
+ * Count how many free cells are reachable from (q, r) via BFS,
+ * stopping early once we reach `limit`.
+ */
+function countReachable(
+  q: number,
+  r: number,
+  occupied: Set<string>,
+  limit: number,
+): number {
+  const visited = new Set<string>([hexKey(q, r)])
+  const queue: [number, number][] = [[q, r]]
+  let count = 1
+
+  while (queue.length > 0 && count < limit) {
+    const [cq, cr] = queue.shift()!
+    for (const [dq, dr] of HEX_DIRECTIONS) {
+      const nq = cq + dq
+      const nr = cr + dr
+      const key = hexKey(nq, nr)
+      if (!occupied.has(key) && !visited.has(key)) {
+        visited.add(key)
+        queue.push([nq, nr])
+        count++
+        if (count >= limit) return count
+      }
+    }
+  }
+  return count
 }
 
 
@@ -209,8 +303,8 @@ function bfsGrow(
     const chaos = rng()
     let pickKey: string
 
-    if (chaos < 0.25) {
-      // 25%: compact fill to prevent disconnection
+    if (chaos < 0.45) {
+      // 45%: compact fill — prefer cells with most territory neighbors (fills gaps)
       let maxNeighbors = 0
       for (const entry of frontierMap.values()) {
         if (entry.neighbors > maxNeighbors) maxNeighbors = entry.neighbors
@@ -221,7 +315,7 @@ function bfsGrow(
       }
       pickKey = candidates[Math.floor(rng() * candidates.length)]
     } else {
-      // 75%: grow from the "tips" — pick frontier cells adjacent to recent additions
+      // 55%: grow from the "tips" — pick frontier cells adjacent to recent additions
       const recentSet = new Set(recentCells.slice(-RECENT_WINDOW))
       const tipCandidates: string[] = []
 
@@ -272,6 +366,61 @@ function bfsGrow(
         }
         frontierMap.set(key, { q: nq, r: nr, neighbors: nCount })
         visited.add(key)
+      }
+    }
+  }
+
+  // If frontier was exhausted before reaching count, re-scan all territory
+  // borders ignoring the visited set (they may have been marked visited early
+  // when the territory was smaller and couldn't reach them)
+  if (cells.length < count) {
+    for (const cellKey of inTerritory) {
+      const [cq, cr] = cellKey.split(",").map(Number)
+      for (const [dq, dr] of HEX_DIRECTIONS) {
+        const nq = cq + dq
+        const nr = cr + dr
+        const key = hexKey(nq, nr)
+        if (!occupied.has(key) && !inTerritory.has(key) && !frontierMap.has(key)) {
+          let nCount = 0
+          for (const [ddq, ddr] of HEX_DIRECTIONS) {
+            if (inTerritory.has(hexKey(nq + ddq, nr + ddr))) nCount++
+          }
+          frontierMap.set(key, { q: nq, r: nr, neighbors: nCount })
+        }
+      }
+    }
+
+    // Continue BFS growth with the newly discovered frontier
+    while (cells.length < count && frontierMap.size > 0) {
+      // Prefer filling gaps (most territory neighbors)
+      let maxN = 0
+      for (const entry of frontierMap.values()) {
+        if (entry.neighbors > maxN) maxN = entry.neighbors
+      }
+      const candidates: string[] = []
+      for (const [key, entry] of frontierMap) {
+        if (entry.neighbors >= maxN) candidates.push(key)
+      }
+      const pickKey = candidates[Math.floor(rng() * candidates.length)]
+      const picked = frontierMap.get(pickKey)!
+      frontierMap.delete(pickKey)
+      cells.push({ q: picked.q, r: picked.r })
+      inTerritory.add(pickKey)
+
+      for (const [dq, dr] of HEX_DIRECTIONS) {
+        const nq = picked.q + dq
+        const nr = picked.r + dr
+        const key = hexKey(nq, nr)
+        if (occupied.has(key) || inTerritory.has(key)) continue
+        if (frontierMap.has(key)) {
+          frontierMap.get(key)!.neighbors++
+        } else {
+          let nCount = 0
+          for (const [ddq, ddr] of HEX_DIRECTIONS) {
+            if (inTerritory.has(hexKey(nq + ddq, nr + ddr))) nCount++
+          }
+          frontierMap.set(key, { q: nq, r: nr, neighbors: nCount })
+        }
       }
     }
   }
