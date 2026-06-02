@@ -2,6 +2,8 @@ import { create } from "zustand"
 
 type MousePos = { x: number; y: number }
 
+type IntroPhase = "idle" | "approach" | "text" | "done"
+
 type PlanetStore = {
   hoveredTerritoryIndex: number | null
   mousePos: MousePos
@@ -19,6 +21,9 @@ type PlanetStore = {
   setPausedAt: (v: number | null) => void
   setHighlightedLogin: (v: string | null) => void
   setSkipReveal: (v: boolean) => void
+  /** Cinematic intro phase for non-authenticated visitors. */
+  introPhase: IntroPhase
+  setIntroPhase: (v: IntroPhase) => void
 }
 
 export const usePlanetStore = create<PlanetStore>((set) => ({
@@ -34,4 +39,6 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setPausedAt: (pausedAt) => set({ pausedAt }),
   setHighlightedLogin: (highlightedLogin) => set({ highlightedLogin }),
   setSkipReveal: (skipReveal) => set({ skipReveal }),
+  introPhase: "idle",
+  setIntroPhase: (introPhase) => set({ introPhase }),
 }))

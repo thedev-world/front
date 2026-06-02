@@ -4,6 +4,7 @@ import { OrbitControls } from "@react-three/drei"
 import { Bloom, EffectComposer } from "@react-three/postprocessing"
 import { useFrame } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
+import * as THREE from "three"
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 
 import { useMe } from "@/features/auth/api/use-me"
@@ -13,6 +14,7 @@ import { sphericalToWorld } from "../lib/planet-projection"
 import { usePlanetStore } from "../stores/planet-store"
 import type { Island, PlanetSnapshot } from "../types/snapshot"
 
+import { IntroTextSweep } from "./intro-text-sweep"
 import { IslandLabels } from "./island-labels"
 import { IslandTerritories } from "./island-territories"
 import { OceanPlanet } from "./ocean-planet"
@@ -23,18 +25,21 @@ const CAM_DIST = 16
 /** Lerp factor per frame — ~2s to reach target at 60fps. */
 const LERP_FACTOR = 0.04
 
-function PlanetGroup({ children }: { children: React.ReactNode }) {
-  return <group>{children}</group>
-}
+// Intro animation constants — single continuous camera motion
+const INTRO_DURATION = 8.0
+const INTRO_START_RADIUS = 50
+const INTRO_END_RADIUS = 16
+const INTRO_START_PHI = Math.PI / 2.5
 
 export function PlanetScene() {
   const { data: rawSnapshot } = usePlanetData()
-  const { data: me } = useMe()
+  const { data: me, isLoading: meLoading } = useMe()
 
   const {
     setPausedAt,
     setHighlightedLogin,
     setSkipReveal,
+    setIntroPhase,
   } = usePlanetStore()
 
   // Always highlight the logged-in user's territory
@@ -48,17 +53,46 @@ export function PlanetScene() {
     return buildSnapshotWithMe(rawSnapshot, me)
   }, [rawSnapshot, me])
 
-  // Camera smoothly animates toward the user's island once per mount
+  // Intro animation for non-authenticated visitors
+  const introStartedRef = useRef(false)
+  const introCamInitRef = useRef(false)
+  const phaseStartTimeRef = useRef(0)
+  const planetGroupRef = useRef<THREE.Group>(null)
+
+  useEffect(() => {
+    if (meLoading || introStartedRef.current) return
+    if (!me) {
+      introStartedRef.current = true
+      const alreadySeen = localStorage.getItem("devplanet_intro_seen")
+      if (alreadySeen) {
+        setIntroPhase("done")
+      } else {
+        localStorage.setItem("devplanet_intro_seen", "1")
+        setIntroPhase("approach")
+      }
+    }
+  }, [me, meLoading, setIntroPhase])
+
+  // Angle theta at end of intro (2pi = back to origin), post-intro orbit continues from here
+  const postIntroThetaRef = useRef(Math.PI * 2)
+  const postIntroStartTimeRef = useRef(0)
   const hasCenteredRef = useRef(false)
   const cameraTargetIslandRef = useRef<Island | null>(null)
   const needsFreezeRef = useRef(false)
   const controlsRef = useRef<OrbitControlsImpl>(null)
+  const userInteractedRef = useRef(false)
 
-  // Cancel camera lerp + skip reveal when user starts interacting
+  // Cancel camera lerp + skip intro/reveal when user starts interacting
   useEffect(() => {
     const controls = controlsRef.current
     if (!controls) return
     const onStart = () => {
+      userInteractedRef.current = true
+      const { introPhase } = usePlanetStore.getState()
+      if (introPhase === "approach" || introPhase === "text") {
+        setIntroPhase("done")
+        return
+      }
       if (cameraTargetIslandRef.current) {
         cameraTargetIslandRef.current = null
         setSkipReveal(true)
@@ -75,12 +109,68 @@ export function PlanetScene() {
     if (!island) return
     cameraTargetIslandRef.current = island
     hasCenteredRef.current = true
-    // Freeze planet rotation only when arriving from onboarding
     if (usePlanetStore.getState().fromOnboarding) needsFreezeRef.current = true
   }, [enrichedSnapshot, me?.island])
 
   useFrame(({ clock, camera: cam }) => {
-    // Apply freeze on first frame after onboarding arrival
+    const { introPhase } = usePlanetStore.getState()
+
+    // Hold camera at intro start position while waiting for intro to begin (guests only)
+    if (introPhase === "idle" && !me) {
+      cam.position.copy(sphericalToWorld(INTRO_START_PHI, 0, INTRO_START_RADIUS))
+      cam.lookAt(0, 0, 0)
+      return
+    }
+
+    // Single continuous camera orbit for intro
+    if (introPhase === "approach" || introPhase === "text") {
+      if (!introCamInitRef.current) {
+        introCamInitRef.current = true
+        phaseStartTimeRef.current = clock.getElapsedTime()
+        cam.position.copy(sphericalToWorld(INTRO_START_PHI, 0, INTRO_START_RADIUS))
+        cam.lookAt(0, 0, 0)
+      }
+
+      const elapsed = clock.getElapsedTime() - phaseStartTimeRef.current
+      const t = Math.min(elapsed / INTRO_DURATION, 1)
+      // Ease-out for orbit (visible rotation from the very first frame)
+      const eased = 1 - Math.pow(1 - t, 2.5)
+
+      // Radius: approaches in ~3s
+      const radiusT = Math.min(elapsed / 3.0, 1)
+      const radiusEased = 1 - Math.pow(1 - radiusT, 3)
+      const radius = INTRO_START_RADIUS - (INTRO_START_RADIUS - INTRO_END_RADIUS) * radiusEased
+
+      // Theta: full 360° with ease-out (rotates fast at start, slows at end)
+      const theta = Math.PI * 2 * eased
+
+      // Phi: sweeps to cover different latitudes
+      const phi = INTRO_START_PHI + Math.sin(eased * Math.PI * 2) * 0.3
+
+      cam.position.copy(sphericalToWorld(phi, theta, radius))
+      cam.lookAt(0, 0, 0)
+
+      // Transition: show text early, end when orbit completes
+      if (introPhase === "approach" && radiusT >= 1) {
+        setIntroPhase("text")
+      }
+      if (t >= 1) {
+        postIntroStartTimeRef.current = clock.getElapsedTime()
+        setIntroPhase("done")
+      }
+      return
+    }
+
+    // Post-intro idle orbit for guests: continue orbiting camera in same direction
+    if (introPhase === "done" && !me && !userInteractedRef.current) {
+      const postElapsed = clock.getElapsedTime() - postIntroStartTimeRef.current
+      const speed = Math.min(postElapsed / 0.3, 1) * 0.0008
+      postIntroThetaRef.current += speed
+      cam.position.copy(sphericalToWorld(INTRO_START_PHI, postIntroThetaRef.current, INTRO_END_RADIUS))
+      cam.lookAt(0, 0, 0)
+    }
+
+    // --- Authenticated user camera centering ---
     if (needsFreezeRef.current) {
       needsFreezeRef.current = false
       setPausedAt(clock.getElapsedTime())
@@ -89,7 +179,6 @@ export function PlanetScene() {
     const island = cameraTargetIslandRef.current
     if (!island) return
 
-    // Recompute target each frame so the camera tracks the rotating island
     const { pausedAt } = usePlanetStore.getState()
     const planetRot = (pausedAt ?? clock.getElapsedTime()) * 0.015
     const [phi, theta] = island.anchor
@@ -98,11 +187,12 @@ export function PlanetScene() {
     cam.position.lerp(target, LERP_FACTOR)
     cam.lookAt(0, 0, 0)
 
-    // Stop animating once close enough
     if (cam.position.distanceTo(target) < 0.08) {
       cameraTargetIslandRef.current = null
     }
   })
+
+  const introPhase = usePlanetStore((s) => s.introPhase)
 
   return (
     <>
@@ -129,7 +219,7 @@ export function PlanetScene() {
 
       <StarField />
 
-      <PlanetGroup>
+      <group ref={planetGroupRef}>
         <OceanPlanet />
         {enrichedSnapshot && (
           <>
@@ -137,7 +227,10 @@ export function PlanetScene() {
             <IslandLabels islands={enrichedSnapshot.islands} />
           </>
         )}
-      </PlanetGroup>
+      </group>
+
+      {/* 3D text sweep behind the planet */}
+      {(introPhase === "approach" || introPhase === "text") && <IntroTextSweep />}
 
       <EffectComposer>
         <Bloom

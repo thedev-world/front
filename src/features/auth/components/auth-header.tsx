@@ -17,7 +17,7 @@ export function AuthHeader() {
           <LogoutButton />
         </>
       ) : (
-        <GitHubSignInButton className="border border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/20" />
+        <GitHubSignInButton />
       )}
     </div>
   )
