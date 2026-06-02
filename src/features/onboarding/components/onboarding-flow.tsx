@@ -1,19 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { StepIslandPicker } from "./step-island-picker";
 import { LevelReveal } from "./level-reveal";
 import { useUpdateIsland } from "../api/use-update-island";
 import { useCompleteOnboarding } from "../api/use-complete-onboarding";
+import { usePlanetStore } from "@/features/planet/stores/planet-store";
 
 type Step = "island" | "reveal";
 
 export function OnboardingFlow() {
   const [step, setStep] = useState<Step>("island");
+  const router = useRouter();
   const { mutate: updateIsland, isPending: isUpdatingIsland } =
     useUpdateIsland();
   const { mutate: completeOnboarding, isPending: isCompletingOnboarding } =
     useCompleteOnboarding();
+  const setFromOnboarding = usePlanetStore((s) => s.setFromOnboarding);
 
   const isConfirming = isUpdatingIsland || isCompletingOnboarding;
 
@@ -49,7 +53,15 @@ export function OnboardingFlow() {
           isConfirming={isConfirming}
         />
       )}
-      {step === "reveal" && <LevelReveal />}
+      {step === "reveal" && (
+        <LevelReveal
+          ctaLabel="Claim your territory"
+          onDone={() => {
+            setFromOnboarding(true);
+            router.push("/");
+          }}
+        />
+      )}
     </div>
   );
 }

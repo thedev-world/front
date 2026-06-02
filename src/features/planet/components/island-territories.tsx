@@ -14,8 +14,16 @@ type Props = {
 }
 
 export function IslandTerritories({ snapshot }: Props) {
-  const { setHoveredTerritory, setMousePos, hoveredTerritoryIndex } =
-    usePlanetStore()
+  const {
+    setHoveredTerritory,
+    setMousePos,
+    hoveredTerritoryIndex,
+    highlightedLogin,
+    fromOnboarding,
+    setFromOnboarding,
+    setPausedAt,
+    setSkipReveal,
+  } = usePlanetStore()
 
   const meshData = useMemo(() => buildTerritoryMesh(snapshot), [snapshot])
 
@@ -49,9 +57,7 @@ export function IslandTerritories({ snapshot }: Props) {
 
     const { faceStart, faceCount } = range
     const posArr = meshData.geometry.attributes.position.array as Float32Array
-    const start = faceStart * 9
-    const slice = posArr.slice(start, start + faceCount * 9)
-
+    const slice = posArr.slice(faceStart * 9, faceStart * 9 + faceCount * 9)
     const geo = new THREE.BufferGeometry()
     geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(slice), 3))
     geo.computeVertexNormals()
@@ -90,6 +96,7 @@ export function IslandTerritories({ snapshot }: Props) {
     const border = hoveredBorderRef.current
     if (!highlight || !border) return
 
+
     const mat = highlight.material as THREE.MeshBasicMaterial
     const lineMat = border.material as THREE.LineBasicMaterial
     const isHovered = hoveredTerritoryIndex !== null
@@ -106,18 +113,231 @@ export function IslandTerritories({ snapshot }: Props) {
     lineMat.opacity = pulseRef.current * (0.75 + pulse * 1.5)
   })
 
+
+  // Permanent "me" highlight (golden)
+  const myTerritoryIndex = useMemo(() => {
+    if (!highlightedLogin) return null
+    const idx = snapshot.territories.findIndex((t) => t.login === highlightedLogin)
+    return idx === -1 ? null : idx
+  }, [highlightedLogin, snapshot])
+
+  const myHighlightMeshRef = useRef<THREE.Mesh>(null)
+  const myBorderRef = useRef<THREE.LineSegments>(null)
+  const myPulseRef = useRef(0)
+
+  useEffect(() => {
+    const mesh = myHighlightMeshRef.current
+    if (!mesh) return
+    const prev = mesh.geometry
+    if (myTerritoryIndex === null) {
+      mesh.geometry = new THREE.BufferGeometry()
+      prev.dispose()
+      return
+    }
+    const range = meshData.territoryFaceRanges[myTerritoryIndex]
+    if (!range || range.faceCount === 0) return
+    const { faceStart, faceCount } = range
+    const posArr = meshData.geometry.attributes.position.array as Float32Array
+    const slice = posArr.slice(faceStart * 9, faceStart * 9 + faceCount * 9)
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(slice), 3))
+    geo.computeVertexNormals()
+    mesh.geometry = geo
+    prev.dispose()
+  }, [myTerritoryIndex, meshData])
+
+  useEffect(() => {
+    const lines = myBorderRef.current
+    if (!lines) return
+    const prev = lines.geometry
+    if (myTerritoryIndex === null) {
+      lines.geometry = new THREE.BufferGeometry()
+      prev.dispose()
+      return
+    }
+    const range = meshData.territoryBorderRanges[myTerritoryIndex]
+    if (!range || range.count === 0) return
+    const { start, count } = range
+    const slice = meshData.allBorderPositions.slice(start * 6, (start + count) * 6)
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(slice), 3))
+    lines.geometry = geo
+    prev.dispose()
+  }, [myTerritoryIndex, meshData])
+
+  useFrame(({ clock }) => {
+    const highlight = myHighlightMeshRef.current
+    const border = myBorderRef.current
+    if (!highlight || !border) return
+    const mat = highlight.material as THREE.MeshBasicMaterial
+    const lineMat = border.material as THREE.LineBasicMaterial
+    // Block golden highlight during reveal + flash: let it fade in only after the full sequence
+    const { fromOnboarding: isRevealing } = usePlanetStore.getState()
+    const isVisible = myTerritoryIndex !== null && !isRevealing && !flashPhaseRef.current
+    const target = isVisible ? 1 : 0
+    // Faster lerp on initial reveal-done fade-in for a snappy golden "settle"
+    const factor = myPulseRef.current < 0.5 && isVisible ? 0.08 : 0.045
+    myPulseRef.current += (target - myPulseRef.current) * factor
+    const t = clock.getElapsedTime()
+    const pulse = isVisible ? Math.sin(t * 1.5) * 0.04 : 0
+    mat.opacity = myPulseRef.current * (0.22 + pulse)
+    lineMat.opacity = myPulseRef.current * (0.6 + pulse * 1.2)
+  })
+
+  // Territory reveal animation (onboarding arrival)
+  const revealMeshRef = useRef<THREE.Mesh>(null)
+  const revealGeoRef = useRef<THREE.BufferGeometry | null>(null)
+  const posBackupRef = useRef<Float32Array | null>(null)
+  const revealedFacesRef = useRef(0)
+  const revealDoneRef = useRef(false)
+  // Flash phase: bright burst at end of reveal before golden highlight fades in
+  const flashPhaseRef = useRef(false)
+  const flashStartRef = useRef(0)
+
+  // When the sequence starts: hide the territory in the main mesh + init glow geo
+  useEffect(() => {
+    if (!fromOnboarding || myTerritoryIndex === null) return
+
+    const range = meshData.territoryFaceRanges[myTerritoryIndex]
+    if (!range || range.faceCount === 0) return
+
+    const posAttr = meshData.geometry.attributes.position as THREE.BufferAttribute
+    const posArr = posAttr.array as Float32Array
+    const vStart = range.faceStart * 9
+    const vCount = range.faceCount * 9
+
+    // 1. Backup the original vertex positions for this territory
+    const backup = posArr.slice(vStart, vStart + vCount)
+    posBackupRef.current = backup
+
+    // 2. Zero out positions → degenerate triangles are invisible to the GPU
+    posArr.fill(0, vStart, vStart + vCount)
+    posAttr.needsUpdate = true
+
+    // 3. Build glow geo from real positions, hidden initially via drawRange
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(backup), 3))
+    geo.computeVertexNormals()
+    geo.setDrawRange(0, 0)
+
+    revealGeoRef.current?.dispose()
+    revealGeoRef.current = geo
+    revealedFacesRef.current = 0
+    revealDoneRef.current = false
+
+    const mesh = revealMeshRef.current
+    if (mesh) mesh.geometry = geo
+  }, [fromOnboarding, myTerritoryIndex, meshData])
+
+  // Restore positions if the component unmounts mid-reveal
+  useEffect(
+    () => () => {
+      revealGeoRef.current?.dispose()
+      const backup = posBackupRef.current
+      if (backup && myTerritoryIndex !== null) {
+        const range = meshData.territoryFaceRanges[myTerritoryIndex]
+        if (range) {
+          const posAttr = meshData.geometry.attributes.position as THREE.BufferAttribute
+          ;(posAttr.array as Float32Array).set(backup, range.faceStart * 9)
+          posAttr.needsUpdate = true
+        }
+      }
+    },
+    [meshData, myTerritoryIndex],
+  )
+
+  useFrame(({ clock }) => {
+    const mesh = revealMeshRef.current
+    const geo = revealGeoRef.current
+    const mat = mesh?.material as THREE.MeshBasicMaterial | undefined
+
+    if (!mesh || !mat) return
+
+    // Skip: user interacted -> restore everything immediately
+    const { skipReveal } = usePlanetStore.getState()
+    if (skipReveal && (fromOnboarding || flashPhaseRef.current) && !revealDoneRef.current) {
+      const backup = posBackupRef.current
+      if (backup && myTerritoryIndex !== null) {
+        const range = meshData.territoryFaceRanges[myTerritoryIndex]
+        if (range) {
+          const posAttr = meshData.geometry.attributes.position as THREE.BufferAttribute
+          ;(posAttr.array as Float32Array).set(backup, range.faceStart * 9)
+          posAttr.needsUpdate = true
+        }
+      }
+      mat.opacity = 0
+      flashPhaseRef.current = false
+      revealDoneRef.current = true
+      posBackupRef.current = null
+      setFromOnboarding(false)
+      setPausedAt(null)
+      setSkipReveal(false)
+      return
+    }
+
+    // Phase 2: flash burst after all cells are revealed
+    if (flashPhaseRef.current) {
+      const FLASH_DURATION = 0.5
+      const elapsed = clock.getElapsedTime() - flashStartRef.current
+      const t = elapsed / FLASH_DURATION
+      if (t >= 1) {
+        // Flash done -> unblock golden highlight
+        mat.opacity = 0
+        flashPhaseRef.current = false
+        posBackupRef.current = null
+        setFromOnboarding(false)
+        setPausedAt(null)
+      } else {
+        // Shape: fast rise (0→0.2 in 20% of time) then slow fade (0.2→1.0 in 80%)
+        mat.opacity = t < 0.2 ? (t / 0.2) : (1 - (t - 0.2) / 0.8)
+      }
+      return
+    }
+
+    if (!fromOnboarding || myTerritoryIndex === null || revealDoneRef.current) {
+      mat.opacity = 0
+      return
+    }
+
+    const backup = posBackupRef.current
+    if (!geo || !backup) return
+
+    const range = meshData.territoryFaceRanges[myTerritoryIndex]
+    if (!range) return
+
+    // ~3 seconds at 60 fps
+    const speed = Math.max(1, Math.ceil(range.faceCount / 180))
+    revealedFacesRef.current = Math.min(revealedFacesRef.current + speed, range.faceCount)
+    const revealed = revealedFacesRef.current
+
+    // Restore revealed face positions in the main mesh (BFS order = centre outward)
+    const posAttr = meshData.geometry.attributes.position as THREE.BufferAttribute
+    ;(posAttr.array as Float32Array).set(backup.subarray(0, revealed * 9), range.faceStart * 9)
+    posAttr.needsUpdate = true
+
+    // Glow follows the same progression
+    geo.setDrawRange(0, revealed * 3)
+    mat.opacity = 0.45
+
+    if (revealed >= range.faceCount) {
+      revealDoneRef.current = true
+      // Trigger flash phase
+      flashPhaseRef.current = true
+      flashStartRef.current = clock.getElapsedTime()
+    }
+  })
+
+  // ─── Pointer events ───────────────────────────────────────────────────────
   const handlePointerMove = useCallback(
     (e: ThreeEvent<PointerEvent>) => {
       e.stopPropagation()
       if (e.faceIndex == null) return
-
       const sphereNormal = e.point.clone().normalize()
       const toCamera = e.camera.position.clone().sub(e.point)
       if (sphereNormal.dot(toCamera) <= 0) {
         setHoveredTerritory(null)
         return
       }
-
       setMousePos({ x: e.clientX, y: e.clientY })
       setHoveredTerritory(meshData.faceToTerritory[e.faceIndex])
     },
@@ -148,7 +368,7 @@ export function IslandTerritories({ snapshot }: Props) {
         />
       </mesh>
 
-      {/* Hover highlight */}
+      {/* Hover highlight (cyan) */}
       <mesh ref={highlightMeshRef} frustumCulled={false}>
         <bufferGeometry />
         <meshBasicMaterial
@@ -164,13 +384,41 @@ export function IslandTerritories({ snapshot }: Props) {
       {/* Hover border */}
       <lineSegments ref={hoveredBorderRef} frustumCulled={false}>
         <bufferGeometry />
-        <lineBasicMaterial
+        <lineBasicMaterial color="#ffffff" transparent opacity={0} depthTest={false} />
+      </lineSegments>
+
+      {/* Permanent "me" highlight (golden) */}
+      <mesh ref={myHighlightMeshRef} frustumCulled={false}>
+        <bufferGeometry />
+        <meshBasicMaterial
+          color="#ffd700"
+          transparent
+          opacity={0}
+          blending={THREE.AdditiveBlending}
+          depthTest={true}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Permanent "me" border (golden) */}
+      <lineSegments ref={myBorderRef} frustumCulled={false}>
+        <bufferGeometry />
+        <lineBasicMaterial color="#ffd700" transparent opacity={0} depthTest={true} depthWrite={false} />
+      </lineSegments>
+
+      {/* Reveal animation (white additive, onboarding only) */}
+      <mesh ref={revealMeshRef} frustumCulled={false}>
+        <bufferGeometry />
+        <meshBasicMaterial
           color="#ffffff"
           transparent
           opacity={0}
+          blending={THREE.AdditiveBlending}
           depthTest={false}
+          side={THREE.DoubleSide}
         />
-      </lineSegments>
+      </mesh>
     </group>
   )
 }
