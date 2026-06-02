@@ -24,6 +24,12 @@ type PlanetStore = {
   /** Cinematic intro phase for non-authenticated visitors. */
   introPhase: IntroPhase
   setIntroPhase: (v: IntroPhase) => void
+  /** Island to focus on (leaderboard accordion open) — triggers camera lerp. */
+  focusIslandId: string | null
+  setFocusIslandId: (v: string | null) => void
+  /** Login to focus on (leaderboard row click) — triggers camera lerp + highlight. */
+  focusLogin: string | null
+  setFocusLogin: (v: string | null) => void
 }
 
 export const usePlanetStore = create<PlanetStore>((set) => ({
@@ -41,4 +47,8 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setSkipReveal: (skipReveal) => set({ skipReveal }),
   introPhase: "idle",
   setIntroPhase: (introPhase) => set({ introPhase }),
+  focusIslandId: null,
+  setFocusIslandId: (focusIslandId) => set({ focusIslandId }),
+  focusLogin: null,
+  setFocusLogin: (focusLogin) => set({ focusLogin }),
 }))

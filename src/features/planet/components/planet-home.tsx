@@ -6,6 +6,7 @@ import { useMe } from "@/features/auth/api/use-me";
 import { GitHubSignInButton } from "@/features/auth/components/github-sign-in-button";
 import { usePlanetData } from "../api/use-planet-data";
 import { usePlanetStore } from "../stores/planet-store";
+import { PlanetLeaderboard } from "./planet-leaderboard";
 
 const PlanetCanvas = dynamic(
   () =>
@@ -39,6 +40,8 @@ export function PlanetHome() {
       <div className="h-full w-full">
         <PlanetCanvas />
       </div>
+
+      <PlanetLeaderboard />
 
       {/* Cinematic intro overlay for non-authenticated visitors */}
       {isGuest && (

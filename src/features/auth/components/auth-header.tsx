@@ -10,7 +10,7 @@ export function AuthHeader() {
   if (me.isPending) return null
 
   return (
-    <div className="absolute right-4 top-4 z-40 flex items-center gap-3">
+    <div className="absolute left-4 top-4 z-40 flex items-center gap-3">
       {me.data ? (
         <>
           <span className="text-sm text-zinc-300">{me.data.github_login}</span>

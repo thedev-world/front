@@ -18,7 +18,7 @@ export function LogoutButton({ className }: Props) {
       onClick={() => void logoutMutation.mutate()}
       className={className}
     >
-      Déconnexion
+      Logout
     </Button>
   );
 }

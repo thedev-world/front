@@ -23,6 +23,8 @@ export function IslandTerritories({ snapshot }: Props) {
     setFromOnboarding,
     setPausedAt,
     setSkipReveal,
+    focusLogin,
+    setFocusLogin,
   } = usePlanetStore()
 
   const meshData = useMemo(() => buildTerritoryMesh(snapshot), [snapshot])
@@ -184,6 +186,72 @@ export function IslandTerritories({ snapshot }: Props) {
     lineMat.opacity = myPulseRef.current * (0.6 + pulse * 1.2)
   })
 
+  // Leaderboard "focus" highlight
+  const focusedTerritoryIndex = useMemo(() => {
+    if (!focusLogin) return null
+    const idx = snapshot.territories.findIndex((t) => t.login === focusLogin)
+    return idx === -1 ? null : idx
+  }, [focusLogin, snapshot])
+
+  const focusHighlightMeshRef = useRef<THREE.Mesh>(null)
+  const focusBorderRef = useRef<THREE.LineSegments>(null)
+  const focusPulseRef = useRef(0)
+
+  useEffect(() => {
+    const mesh = focusHighlightMeshRef.current
+    if (!mesh) return
+    const prev = mesh.geometry
+    if (focusedTerritoryIndex === null) {
+      mesh.geometry = new THREE.BufferGeometry()
+      prev.dispose()
+      return
+    }
+    const range = meshData.territoryFaceRanges[focusedTerritoryIndex]
+    if (!range || range.faceCount === 0) return
+    const { faceStart, faceCount } = range
+    const posArr = meshData.geometry.attributes.position.array as Float32Array
+    const slice = posArr.slice(faceStart * 9, faceStart * 9 + faceCount * 9)
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(slice), 3))
+    geo.computeVertexNormals()
+    mesh.geometry = geo
+    prev.dispose()
+  }, [focusedTerritoryIndex, meshData])
+
+  useEffect(() => {
+    const lines = focusBorderRef.current
+    if (!lines) return
+    const prev = lines.geometry
+    if (focusedTerritoryIndex === null) {
+      lines.geometry = new THREE.BufferGeometry()
+      prev.dispose()
+      return
+    }
+    const range = meshData.territoryBorderRanges[focusedTerritoryIndex]
+    if (!range || range.count === 0) return
+    const { start, count } = range
+    const slice = meshData.allBorderPositions.slice(start * 6, (start + count) * 6)
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(slice), 3))
+    lines.geometry = geo
+    prev.dispose()
+  }, [focusedTerritoryIndex, meshData])
+
+  useFrame(({ clock }) => {
+    const highlight = focusHighlightMeshRef.current
+    const border = focusBorderRef.current
+    if (!highlight || !border) return
+    const mat = highlight.material as THREE.MeshBasicMaterial
+    const lineMat = border.material as THREE.LineBasicMaterial
+    const isVisible = focusedTerritoryIndex !== null
+    const target = isVisible ? 1 : 0
+    focusPulseRef.current += (target - focusPulseRef.current) * 0.12
+    const t = clock.getElapsedTime()
+    const pulse = isVisible ? Math.sin(t * 3.0) * 0.08 : 0
+    mat.opacity = focusPulseRef.current * (0.28 + pulse)
+    lineMat.opacity = focusPulseRef.current * (0.75 + pulse * 1.5)
+  })
+
   // Territory reveal animation (onboarding arrival)
   const revealMeshRef = useRef<THREE.Mesh>(null)
   const revealGeoRef = useRef<THREE.BufferGeometry | null>(null)
@@ -339,9 +407,11 @@ export function IslandTerritories({ snapshot }: Props) {
         return
       }
       setMousePos({ x: e.clientX, y: e.clientY })
+      // Clear leaderboard focus when user interacts directly with the planet
+      if (usePlanetStore.getState().focusLogin) setFocusLogin(null)
       setHoveredTerritory(meshData.faceToTerritory[e.faceIndex])
     },
-    [meshData.faceToTerritory, setHoveredTerritory, setMousePos],
+    [meshData.faceToTerritory, setFocusLogin, setHoveredTerritory, setMousePos],
   )
 
   const handlePointerOut = useCallback(() => {
@@ -376,7 +446,8 @@ export function IslandTerritories({ snapshot }: Props) {
           transparent
           opacity={0}
           blending={THREE.AdditiveBlending}
-          depthTest={false}
+          depthTest={true}
+          depthWrite={false}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -384,7 +455,7 @@ export function IslandTerritories({ snapshot }: Props) {
       {/* Hover border */}
       <lineSegments ref={hoveredBorderRef} frustumCulled={false}>
         <bufferGeometry />
-        <lineBasicMaterial color="#ffffff" transparent opacity={0} depthTest={false} />
+        <lineBasicMaterial color="#ffffff" transparent opacity={0} depthTest={true} depthWrite={false} />
       </lineSegments>
 
       {/* Permanent "me" highlight (golden) */}
@@ -419,6 +490,26 @@ export function IslandTerritories({ snapshot }: Props) {
           side={THREE.DoubleSide}
         />
       </mesh>
+
+      {/* Leaderboard focus highlight */}
+      <mesh ref={focusHighlightMeshRef} frustumCulled={false}>
+        <bufferGeometry />
+        <meshBasicMaterial
+          color="#88ddff"
+          transparent
+          opacity={0}
+          blending={THREE.AdditiveBlending}
+          depthTest={true}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Leaderboard focus border */}
+      <lineSegments ref={focusBorderRef} frustumCulled={false}>
+        <bufferGeometry />
+        <lineBasicMaterial color="#ffffff" transparent opacity={0} depthTest={true} depthWrite={false} />
+      </lineSegments>
     </group>
   )
 }
