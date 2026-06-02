@@ -42,6 +42,10 @@ export function PlanetScene() {
     setIntroPhase,
   } = usePlanetStore()
 
+  // Reactive selectors for leaderboard focus
+  const focusIslandId = usePlanetStore((s) => s.focusIslandId)
+  const focusLogin = usePlanetStore((s) => s.focusLogin)
+
   // Always highlight the logged-in user's territory
   useEffect(() => {
     if (me?.github_login) setHighlightedLogin(me.github_login)
@@ -52,6 +56,22 @@ export function PlanetScene() {
     if (!rawSnapshot || !me) return rawSnapshot
     return buildSnapshotWithMe(rawSnapshot, me)
   }, [rawSnapshot, me])
+
+  // Camera focus triggered by leaderboard island accordion
+  useEffect(() => {
+    if (!focusIslandId || !enrichedSnapshot) return
+    const island = enrichedSnapshot.islands.find((i) => i.id === focusIslandId)
+    if (island) cameraTargetIslandRef.current = { island, keepDistance: true, fixedRadius: null }
+  }, [focusIslandId, enrichedSnapshot])
+
+  // Camera focus triggered by leaderboard row click (navigate to user's island)
+  useEffect(() => {
+    if (!focusLogin || !enrichedSnapshot) return
+    const territory = enrichedSnapshot.territories.find((t) => t.login === focusLogin)
+    if (!territory) return
+    const island = enrichedSnapshot.islands.find((i) => i.id === territory.islandId)
+    if (island) cameraTargetIslandRef.current = { island, keepDistance: true, fixedRadius: null }
+  }, [focusLogin, enrichedSnapshot])
 
   // Intro animation for non-authenticated visitors
   const introStartedRef = useRef(false)
@@ -77,7 +97,7 @@ export function PlanetScene() {
   const postIntroThetaRef = useRef(Math.PI * 2)
   const postIntroStartTimeRef = useRef(0)
   const hasCenteredRef = useRef(false)
-  const cameraTargetIslandRef = useRef<Island | null>(null)
+  const cameraTargetIslandRef = useRef<{ island: Island; keepDistance: boolean; fixedRadius: number | null } | null>(null)
   const needsFreezeRef = useRef(false)
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const userInteractedRef = useRef(false)
@@ -107,7 +127,7 @@ export function PlanetScene() {
     if (!enrichedSnapshot || !me?.island || hasCenteredRef.current) return
     const island = enrichedSnapshot.islands.find((i) => i.id === me.island)
     if (!island) return
-    cameraTargetIslandRef.current = island
+    cameraTargetIslandRef.current = { island: island, keepDistance: false, fixedRadius: null }
     hasCenteredRef.current = true
     if (usePlanetStore.getState().fromOnboarding) needsFreezeRef.current = true
   }, [enrichedSnapshot, me?.island])
@@ -176,15 +196,23 @@ export function PlanetScene() {
       setPausedAt(clock.getElapsedTime())
     }
 
-    const island = cameraTargetIslandRef.current
-    if (!island) return
+    const target_ref = cameraTargetIslandRef.current
+    if (!target_ref) return
 
-    const { pausedAt } = usePlanetStore.getState()
-    const planetRot = (pausedAt ?? clock.getElapsedTime()) * 0.015
-    const [phi, theta] = island.anchor
-    const target = sphericalToWorld(phi, theta + planetRot, CAM_DIST)
+    // Capture radius once on first frame to avoid inward drift from linear lerp
+    if (target_ref.keepDistance && target_ref.fixedRadius === null) {
+      target_ref.fixedRadius = cam.position.length()
+    }
+
+    const [phi, theta] = target_ref.island.anchor
+    const radius = target_ref.keepDistance ? (target_ref.fixedRadius ?? CAM_DIST) : CAM_DIST
+    const target = sphericalToWorld(phi, theta, radius)
 
     cam.position.lerp(target, LERP_FACTOR)
+    // Re-normalize to fixed radius after lerp to prevent distance drift
+    if (target_ref.keepDistance && target_ref.fixedRadius !== null) {
+      cam.position.setLength(target_ref.fixedRadius)
+    }
     cam.lookAt(0, 0, 0)
 
     if (cam.position.distanceTo(target) < 0.08) {
