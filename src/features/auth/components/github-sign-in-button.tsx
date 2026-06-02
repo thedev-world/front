@@ -11,9 +11,13 @@ export function GitHubSignInButton({ className, children }: Props) {
   return (
     <a
       href={githubOAuthStartUrl()}
-      className={cn(buttonVariants({ variant: "default" }), className)}
+      className={cn(
+        buttonVariants({ variant: "default" }),
+        className,
+        "border border-white/20 bg-white/10 backdrop-blur-sm hover:bg-white/15 text-white",
+      )}
     >
-      {children ?? "Connexion GitHub"}
+      {children ?? "Sign in with GitHub"}
     </a>
   );
 }

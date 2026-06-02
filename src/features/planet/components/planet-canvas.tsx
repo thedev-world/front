@@ -10,7 +10,7 @@ export function PlanetCanvas() {
   return (
     <div className="relative h-full w-full">
       <Canvas
-        camera={{ position: [0, 2, 14], fov: 50 }}
+        camera={{ position: [0, 5, 16], fov: 50 }}
         gl={{
           antialias: true,
           alpha: true,

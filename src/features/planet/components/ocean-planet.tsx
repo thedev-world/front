@@ -108,6 +108,7 @@ export function OceanPlanet() {
           ref={oceanMatRef}
           vertexShader={OCEAN_VERT}
           fragmentShader={OCEAN_FRAG}
+          depthWrite
           uniforms={{
             uTime: { value: 0 },
             uColor: { value: new THREE.Color("#0ea5e9") },
@@ -117,8 +118,8 @@ export function OceanPlanet() {
         />
       </mesh>
 
-      {/* Fresnel atmosphere rim */}
-      <mesh material={fresnelMat}>
+      {/* Fresnel atmosphere rim — renderOrder 2 so it renders after the intro text (renderOrder 1) and visually overlaps it */}
+      <mesh material={fresnelMat} renderOrder={2}>
         <sphereGeometry args={[PLANET_RADIUS * 1.07, 48, 48]} />
       </mesh>
     </group>
