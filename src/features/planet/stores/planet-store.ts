@@ -24,6 +24,9 @@ type PlanetStore = {
   /** Cinematic intro phase for non-authenticated visitors. */
   introPhase: IntroPhase
   setIntroPhase: (v: IntroPhase) => void
+  /** When true, show the onboarding stats overlay after territory reveal. */
+  showOnboardingStats: boolean
+  setShowOnboardingStats: (v: boolean) => void
   /** Island to focus on (leaderboard accordion open) — triggers camera lerp. */
   focusIslandId: string | null
   setFocusIslandId: (v: string | null) => void
@@ -45,6 +48,8 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setPausedAt: (pausedAt) => set({ pausedAt }),
   setHighlightedLogin: (highlightedLogin) => set({ highlightedLogin }),
   setSkipReveal: (skipReveal) => set({ skipReveal }),
+  showOnboardingStats: false,
+  setShowOnboardingStats: (showOnboardingStats) => set({ showOnboardingStats }),
   introPhase: "idle",
   setIntroPhase: (introPhase) => set({ introPhase }),
   focusIslandId: null,

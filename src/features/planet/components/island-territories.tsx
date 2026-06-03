@@ -23,6 +23,7 @@ export function IslandTerritories({ snapshot }: Props) {
     setFromOnboarding,
     setPausedAt,
     setSkipReveal,
+    setShowOnboardingStats,
     focusLogin,
     setFocusLogin,
   } = usePlanetStore()
@@ -126,6 +127,15 @@ export function IslandTerritories({ snapshot }: Props) {
   const myHighlightMeshRef = useRef<THREE.Mesh>(null)
   const myBorderRef = useRef<THREE.LineSegments>(null)
   const myPulseRef = useRef(0)
+
+  // First authenticated visit: show stats once (no onboarding animation path)
+  useEffect(() => {
+    if (myTerritoryIndex === null || fromOnboarding) return
+    const delay = setTimeout(() => {
+      setShowOnboardingStats(true)
+    }, 1200)
+    return () => clearTimeout(delay)
+  }, [myTerritoryIndex, fromOnboarding, setShowOnboardingStats])
 
   useEffect(() => {
     const mesh = myHighlightMeshRef.current
@@ -349,12 +359,13 @@ export function IslandTerritories({ snapshot }: Props) {
       const elapsed = clock.getElapsedTime() - flashStartRef.current
       const t = elapsed / FLASH_DURATION
       if (t >= 1) {
-        // Flash done -> unblock golden highlight
+        // Flash done -> unblock golden highlight + show stats overlay
         mat.opacity = 0
         flashPhaseRef.current = false
         posBackupRef.current = null
         setFromOnboarding(false)
         setPausedAt(null)
+        setShowOnboardingStats(true)
       } else {
         // Shape: fast rise (0→0.2 in 20% of time) then slow fade (0.2→1.0 in 80%)
         mat.opacity = t < 0.2 ? (t / 0.2) : (1 - (t - 0.2) / 0.8)
