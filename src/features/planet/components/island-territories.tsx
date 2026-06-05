@@ -133,7 +133,7 @@ export function IslandTerritories({ snapshot }: Props) {
     if (myTerritoryIndex === null || fromOnboarding) return
     const delay = setTimeout(() => {
       setShowOnboardingStats(true)
-    }, 1200)
+    }, 1800)
     return () => clearTimeout(delay)
   }, [myTerritoryIndex, fromOnboarding, setShowOnboardingStats])
 
