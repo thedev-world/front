@@ -19,6 +19,7 @@ import { IslandLabels } from "./island-labels"
 import { IslandTerritories } from "./island-territories"
 import { OceanPlanet } from "./ocean-planet"
 import { StarField } from "./star-field"
+import { TerritoryPositionTracker } from "./territory-position-tracker"
 
 /** Camera distance when centering on the user's island. */
 const CAM_DIST = 16
@@ -40,6 +41,7 @@ export function PlanetScene() {
     setHighlightedLogin,
     setSkipReveal,
     setIntroPhase,
+    setPlanetInteracted,
   } = usePlanetStore()
 
   // Reactive selectors for leaderboard focus
@@ -108,6 +110,7 @@ export function PlanetScene() {
     if (!controls) return
     const onStart = () => {
       userInteractedRef.current = true
+      setPlanetInteracted(true)
       const { introPhase } = usePlanetStore.getState()
       if (introPhase === "approach" || introPhase === "text") {
         setIntroPhase("done")
@@ -120,6 +123,8 @@ export function PlanetScene() {
     }
     controls.addEventListener("start", onStart)
     return () => controls.removeEventListener("start", onStart)
+  // controlsRef.current is set synchronously before this effect runs (same render cycle).
+  // Zustand setters (setSkipReveal, setIntroPhase, setPlanetInteracted) are stable references.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -209,6 +214,7 @@ export function PlanetScene() {
     const target = sphericalToWorld(phi, theta, radius)
 
     cam.position.lerp(target, LERP_FACTOR)
+
     // Re-normalize to fixed radius after lerp to prevent distance drift
     if (target_ref.keepDistance && target_ref.fixedRadius !== null) {
       cam.position.setLength(target_ref.fixedRadius)
@@ -259,6 +265,15 @@ export function PlanetScene() {
 
       {/* 3D text sweep behind the planet */}
       {(introPhase === "approach" || introPhase === "text") && <IntroTextSweep />}
+
+      {/* Tracker for the authenticated user's territory screen position */}
+      {enrichedSnapshot && me?.island && (
+        <TerritoryPositionTracker
+          island={enrichedSnapshot.islands.find((i) => i.id === me.island)}
+          territory={enrichedSnapshot.territories.find((t) => t.login === me.github_login)}
+          cellSize={enrichedSnapshot.cellSize}
+        />
+      )}
 
       <EffectComposer>
         <Bloom

@@ -33,6 +33,12 @@ type PlanetStore = {
   /** Login to focus on (leaderboard row click) — triggers camera lerp + highlight. */
   focusLogin: string | null
   setFocusLogin: (v: string | null) => void
+  /** Screen coordinates (px) of the authenticated user's territory center. */
+  myTerritoryScreenPos: MousePos | null
+  setMyTerritoryScreenPos: (pos: MousePos | null) => void
+  /** True when the user starts dragging the planet (hides the territory connector line). */
+  planetInteracted: boolean
+  setPlanetInteracted: (v: boolean) => void
 }
 
 export const usePlanetStore = create<PlanetStore>((set) => ({
@@ -56,4 +62,8 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setFocusIslandId: (focusIslandId) => set({ focusIslandId }),
   focusLogin: null,
   setFocusLogin: (focusLogin) => set({ focusLogin }),
+  myTerritoryScreenPos: null,
+  setMyTerritoryScreenPos: (myTerritoryScreenPos) => set({ myTerritoryScreenPos }),
+  planetInteracted: false,
+  setPlanetInteracted: (planetInteracted) => set({ planetInteracted }),
 }))
