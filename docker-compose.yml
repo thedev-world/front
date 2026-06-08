@@ -1,0 +1,20 @@
+services:
+  front:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devplanet-front
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - devplanet-network
+
+networks:
+  devplanet-network:
+    name: devplanet-network
+    driver: bridge
