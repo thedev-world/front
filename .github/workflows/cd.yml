@@ -1,0 +1,74 @@
+name: Front — CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "SHA tag to deploy (e.g. sha-abc1234)"
+        required: true
+
+env:
+  IMAGE: ${{ secrets.SCW_REGISTRY }}/devplanet-front
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build & Push — after CI passes on master
+  # ---------------------------------------------------------------------------
+  build-and-push:
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    name: Build & Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set image tag
+        id: meta
+        run: echo "tag=sha-$(echo ${{ github.event.workflow_run.head_sha }} | head -c7)" >> $GITHUB_OUTPUT
+
+      - name: Log in to Scaleway registry
+        run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg BACKEND_URL=http://api:8000 \
+            --build-arg NEXT_PUBLIC_API_URL= \
+            -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }} \
+            -t ${{ env.IMAGE }}:latest \
+            .
+
+      - name: Push image
+        run: |
+          docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+          docker push ${{ env.IMAGE }}:latest
+
+      - name: Summary
+        run: echo "Image pushed → ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}"
+
+  # ---------------------------------------------------------------------------
+  # Deploy — manual promotion of a SHA tag to prod
+  # ---------------------------------------------------------------------------
+  deploy:
+    if: github.event_name == 'workflow_dispatch'
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            /opt/devplanet/devplanet-infra/scripts/deploy.sh front ${{ inputs.image_tag }}
