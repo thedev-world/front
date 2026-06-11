@@ -85,11 +85,11 @@ export function PlanetScene() {
     if (meLoading || introStartedRef.current) return
     if (!me) {
       introStartedRef.current = true
-      const alreadySeen = localStorage.getItem("devplanet_intro_seen")
+      const alreadySeen = localStorage.getItem("thedevworld_intro_seen")
       if (alreadySeen) {
         setIntroPhase("done")
       } else {
-        localStorage.setItem("devplanet_intro_seen", "1")
+        localStorage.setItem("thedevworld_intro_seen", "1")
         setIntroPhase("approach")
       }
     }
