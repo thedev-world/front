@@ -56,7 +56,7 @@ function OnboardingStatsOverlay({
   }
 
   useEffect(() => {
-    localStorage.setItem("devplanet_stats_shown", "1")
+    localStorage.setItem("thedevworld_stats_shown", "1")
 
     schedule(() => setCardVisible(true), CARD_DELAY_MS)
 
@@ -115,7 +115,7 @@ function OnboardingStatsOverlay({
               #{stats.globalRank}
             </span>
             <span className="text-[12px] text-zinc-400">
-              largest territory on DevPlanet
+              largest territory in the dev world
             </span>
           </div>
 

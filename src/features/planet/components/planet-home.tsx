@@ -60,9 +60,9 @@ export function PlanetHome() {
 
       <div className="absolute bottom-4 left-4 z-40">
         <h1 className="text-lg font-semibold tracking-tight text-white/80">
-          Devplanet
+          The dev world
         </h1>
-        <p className="text-sm text-zinc-500">A planet built by developers</p>
+        <p className="text-sm text-zinc-500">A world built by developers</p>
       </div>
     </div>
   );

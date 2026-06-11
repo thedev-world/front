@@ -1,3 +1,3 @@
-# DevPlanet front 
+# The dev world front
 
 WIP

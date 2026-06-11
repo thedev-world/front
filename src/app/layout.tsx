@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Devplanet",
-  description: "Application Devplanet",
+  title: "The dev world",
+  description: "Explore the global developer ecosystem",
 };
 
 export default function RootLayout({

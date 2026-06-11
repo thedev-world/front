@@ -22,7 +22,7 @@ export function LevelReveal({
   startXp,
   endXp,
   onDone,
-  ctaLabel = "Enter Devplanet",
+  ctaLabel = "Enter the World",
   diffSummary,
 }: {
   startXp?: number;
