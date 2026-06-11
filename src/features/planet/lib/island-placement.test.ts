@@ -118,6 +118,20 @@ describe("buildPlanetSnapshot — territory growth", () => {
     }
   })
 
+  it("avoids bloated planet at high density", () => {
+    const apiResponse = makeMultiIsland({
+      frontend: 600,
+      backend: 600,
+      "ai-ml": 600,
+      devops: 600,
+      mobile: 600,
+    })
+    const snapshot = buildPlanetSnapshot(apiResponse)
+
+    expect(snapshot.planetRadius).toBeLessThanOrEqual(7)
+    expect(snapshot.cellSize).toBeLessThan(0.04)
+  })
+
   it("builds in under 200ms for a large planet (260 territories)", () => {
     const apiResponse = makeMultiIsland({
       frontend: 75,

@@ -12,9 +12,15 @@ type Props = {
   island: Island | undefined
   territory: Territory | undefined
   cellSize: number
+  planetRadius?: number
 }
 
-export function TerritoryPositionTracker({ island, territory, cellSize }: Props) {
+export function TerritoryPositionTracker({
+  island,
+  territory,
+  cellSize,
+  planetRadius = PLANET_RADIUS,
+}: Props) {
   const setMyTerritoryScreenPos = usePlanetStore((s) => s.setMyTerritoryScreenPos)
   const showOnboardingStats = usePlanetStore((s) => s.showOnboardingStats)
 
@@ -23,11 +29,20 @@ export function TerritoryPositionTracker({ island, territory, cellSize }: Props)
 
     const center = new THREE.Vector3(0, 0, 0)
     territory.cells.forEach((cell) => {
-      center.add(cellWorldPosition(cell, island.anchor[0], island.anchor[1], cellSize))
+      center.add(
+        cellWorldPosition(
+          cell,
+          island.anchor[0],
+          island.anchor[1],
+          cellSize,
+          0,
+          planetRadius,
+        ),
+      )
     })
 
-    return center.divideScalar(territory.cells.length).normalize().multiplyScalar(PLANET_RADIUS)
-  }, [island, territory, cellSize])
+    return center.divideScalar(territory.cells.length).normalize().multiplyScalar(planetRadius)
+  }, [island, territory, cellSize, planetRadius])
 
   useFrame(({ camera }) => {
     if (!pos3d || !showOnboardingStats) {

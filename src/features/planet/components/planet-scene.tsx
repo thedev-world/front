@@ -254,11 +254,14 @@ export function PlanetScene() {
       <StarField />
 
       <group ref={planetGroupRef}>
-        <OceanPlanet />
+        <OceanPlanet planetRadius={enrichedSnapshot?.planetRadius} />
         {enrichedSnapshot && (
           <>
             <IslandTerritories key={enrichedSnapshot.version} snapshot={enrichedSnapshot} />
-            <IslandLabels islands={enrichedSnapshot.islands} />
+            <IslandLabels
+              islands={enrichedSnapshot.islands}
+              planetRadius={enrichedSnapshot.planetRadius}
+            />
           </>
         )}
       </group>
@@ -272,6 +275,7 @@ export function PlanetScene() {
           island={enrichedSnapshot.islands.find((i) => i.id === me.island)}
           territory={enrichedSnapshot.territories.find((t) => t.login === me.github_login)}
           cellSize={enrichedSnapshot.cellSize}
+          planetRadius={enrichedSnapshot.planetRadius}
         />
       )}
 

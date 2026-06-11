@@ -23,6 +23,8 @@ export type Territory = {
 export type PlanetSnapshot = {
   version: string
   cellSize: number
+  /** Dynamic radius — grows when cell density exceeds the base sphere capacity. */
+  planetRadius: number
   islands: Island[]
   territories: Territory[]
 }

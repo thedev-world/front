@@ -3,7 +3,9 @@ import * as THREE from "three"
 import type { HexCell } from "../types/snapshot"
 import { hexToLocal } from "./hex-grid"
 
-export const PLANET_RADIUS = 5
+export const BASE_PLANET_RADIUS = 5
+/** Default radius when no snapshot is available. Prefer `snapshot.planetRadius`. */
+export const PLANET_RADIUS = BASE_PLANET_RADIUS
 
 export function sphericalToWorld(
   phi: number,
@@ -38,9 +40,10 @@ export function cellWorldPosition(
   anchorTheta: number,
   cellSize: number,
   heightOffset = 0,
+  planetRadius = PLANET_RADIUS,
 ): THREE.Vector3 {
   const [hx, hy] = hexToLocal(cell.q, cell.r, cellSize)
-  const anchorPoint = sphericalToWorld(anchorPhi, anchorTheta)
+  const anchorPoint = sphericalToWorld(anchorPhi, anchorTheta, planetRadius)
   const { right, up } = islandTangentFrame(anchorPhi, anchorTheta)
 
   const worldPos = anchorPoint
@@ -48,5 +51,5 @@ export function cellWorldPosition(
     .addScaledVector(right, hx)
     .addScaledVector(up, hy)
 
-  return worldPos.normalize().multiplyScalar(PLANET_RADIUS + heightOffset)
+  return worldPos.normalize().multiplyScalar(planetRadius + heightOffset)
 }
