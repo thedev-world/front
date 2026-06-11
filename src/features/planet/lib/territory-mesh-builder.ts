@@ -103,6 +103,7 @@ function project(
   up: THREE.Vector3,
   anchor: THREE.Vector3,
   height: number,
+  planetRadius: number,
   out: THREE.Vector3,
 ): void {
   out.copy(anchor)
@@ -110,7 +111,7 @@ function project(
   out.add(_scratch)
   _scratch.copy(up).multiplyScalar(py)
   out.add(_scratch)
-  out.normalize().multiplyScalar(PLANET_RADIUS + height)
+  out.normalize().multiplyScalar(planetRadius + height)
 }
 
 // Edge vertex pairs for each hex direction (flat-top hex)
@@ -134,6 +135,7 @@ export type TerritoryMeshData = {
 
 export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData {
   const cs = snapshot.cellSize
+  const planetRadius = snapshot.planetRadius ?? PLANET_RADIUS
   const hexR = cs
   const borderDelta = cs * BORDER_DELTA_RATIO
   const jitter = cs * JITTER_AMOUNT
@@ -200,16 +202,16 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
     islandCounters.set(territory.islandId, currentIdx + 1)
 
     const [phi, theta] = island.anchor
-    _anchor.setFromSpherical(new THREE.Spherical(PLANET_RADIUS, phi, theta))
+    _anchor.setFromSpherical(new THREE.Spherical(planetRadius, phi, theta))
     const { right, up } = islandTangentFrame(phi, theta)
 
     const totalInIsland = devsPerIsland.get(territory.islandId) || 1
     const topColor = territoryColor(island, currentIdx, totalInIsland)
     const cliffColor = wallColor(topColor)
     const cellHeight = Math.max(cs * TERRAIN_HEIGHT_RATIO, MIN_TERRAIN_HEIGHT)
-    const bottomScale = PLANET_RADIUS / (PLANET_RADIUS + cellHeight)
+    const bottomScale = planetRadius / (planetRadius + cellHeight)
     const borderElevation =
-      (PLANET_RADIUS + cellHeight + borderDelta) / (PLANET_RADIUS + cellHeight)
+      (planetRadius + cellHeight + borderDelta) / (planetRadius + cellHeight)
 
     const faceStart = fIdx
     const borderStart = bIdx
@@ -228,10 +230,11 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
           up,
           _anchor,
           cellHeight,
+          planetRadius,
           _hex3D[i],
         )
       }
-      project(cx, cy, right, up, _anchor, cellHeight, _center3D)
+      project(cx, cy, right, up, _anchor, cellHeight, planetRadius, _center3D)
 
       // Face normal = radial direction at center
       const len = _center3D.length()

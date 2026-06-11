@@ -73,7 +73,11 @@ const FRESNEL_FRAG = `
   }
 `
 
-export function OceanPlanet() {
+type Props = {
+  planetRadius?: number
+}
+
+export function OceanPlanet({ planetRadius = PLANET_RADIUS }: Props) {
   const oceanMatRef = useRef<THREE.ShaderMaterial>(null)
 
   const fresnelMat = useMemo(
@@ -103,7 +107,7 @@ export function OceanPlanet() {
     <group>
       {/* Animated low-poly ocean */}
       <mesh>
-        <icosahedronGeometry args={[PLANET_RADIUS, 4]} />
+        <icosahedronGeometry args={[planetRadius, 4]} />
         <shaderMaterial
           ref={oceanMatRef}
           vertexShader={OCEAN_VERT}
@@ -120,7 +124,7 @@ export function OceanPlanet() {
 
       {/* Fresnel atmosphere rim — renderOrder 2 so it renders after the intro text (renderOrder 1) and visually overlaps it */}
       <mesh material={fresnelMat} renderOrder={2}>
-        <sphereGeometry args={[PLANET_RADIUS * 1.07, 48, 48]} />
+        <sphereGeometry args={[planetRadius * 1.07, 48, 48]} />
       </mesh>
     </group>
   )

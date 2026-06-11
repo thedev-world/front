@@ -77,9 +77,10 @@ function IslandLabel({ island, position, rotation, texture }: LabelMeshProps) {
 
 type Props = {
   islands: Island[]
+  planetRadius?: number
 }
 
-export function IslandLabels({ islands }: Props) {
+export function IslandLabels({ islands, planetRadius = PLANET_RADIUS }: Props) {
   const { data: snapshot } = usePlanetData()
 
   const labels = useMemo(() => {
@@ -92,7 +93,7 @@ export function IslandLabels({ islands }: Props) {
 
     return islands.map((island) => {
       const [phi, theta] = island.anchor
-      const position = sphericalToWorld(phi, theta, PLANET_RADIUS + LABEL_OFFSET)
+      const position = sphericalToWorld(phi, theta, planetRadius + LABEL_OFFSET)
       const { normal, right, up } = islandTangentFrame(phi, theta)
       const matrix = new THREE.Matrix4().makeBasis(right, up, normal)
       const rotation = new THREE.Euler().setFromRotationMatrix(matrix)
@@ -100,7 +101,7 @@ export function IslandLabels({ islands }: Props) {
       const texture = makeTextTexture(`${island.name.toUpperCase()} ISLAND`, island.cellCount, devs)
       return { island, position, rotation, texture }
     })
-  }, [islands, snapshot])
+  }, [islands, snapshot, planetRadius])
 
   return (
     <>

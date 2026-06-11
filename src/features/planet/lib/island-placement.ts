@@ -14,7 +14,8 @@ import type {
   PlanetSnapshot,
   Territory,
 } from "../types/snapshot"
-import { HEX_DIRECTIONS, hexKey } from "./hex-grid"
+import { HEX_DIRECTIONS, hexKey, hexToLocal } from "./hex-grid"
+import { BASE_PLANET_RADIUS } from "./planet-projection"
 
 // Palette of rich, distinct colors per island type
 const ISLAND_COLORS: Record<string, string> = {
@@ -303,8 +304,8 @@ function bfsGrow(
     const chaos = rng()
     let pickKey: string
 
-    if (chaos < 0.45) {
-      // 45%: compact fill — prefer cells with most territory neighbors (fills gaps)
+    if (chaos < 0.62) {
+      // Compact fill — prefer cells with most territory neighbors (fills gaps)
       let maxNeighbors = 0
       for (const entry of frontierMap.values()) {
         if (entry.neighbors > maxNeighbors) maxNeighbors = entry.neighbors
@@ -429,42 +430,83 @@ function bfsGrow(
 }
 
 /**
- * Compute appropriate cellSize so territories don't overflow the sphere.
- *
- * Two constraints, the stricter one wins:
- *  1. Global coverage: total hex area ≤ 35% of sphere surface.
- *  2. Per-island angular budget: the largest island must fit within its
- *     Fibonacci–Voronoi cell (angular radius ≈ sqrt(4π/N) / 2).
- *     This prevents large islands from bleeding into their neighbours.
+ * Max flat-plane radius of an island at cellSize=1, including hex corners + jitter.
+ * Matches territory-mesh-builder constants.
  */
-function computeCellSize(
+function computeIslandExtentUnit(cells: HexCell[]): number {
+  const hexR = 1
+  const jitter = 0.12
+  let maxDist = hexR * (1 + jitter)
+
+  for (const { q, r } of cells) {
+    const [cx, cy] = hexToLocal(q, r, 1)
+    maxDist = Math.max(maxDist, Math.hypot(cx, cy) + hexR * (1 + jitter))
+  }
+
+  return maxDist
+}
+
+function computeMaxIslandExtentUnit(territories: Territory[]): number {
+  const cellsByIsland = new Map<string, HexCell[]>()
+
+  for (const t of territories) {
+    const existing = cellsByIsland.get(t.islandId) ?? []
+    existing.push(...t.cells)
+    cellsByIsland.set(t.islandId, existing)
+  }
+
+  let maxExtent = 1
+  for (const cells of cellsByIsland.values()) {
+    maxExtent = Math.max(maxExtent, computeIslandExtentUnit(cells))
+  }
+
+  return maxExtent
+}
+
+function islandAngularRadius(islandCount: number): number {
+  return Math.sqrt((4 * Math.PI) / Math.max(islandCount, 1)) / 2
+}
+
+/**
+ * Compute base cellSize + planetRadius.
+ *
+ * Uses the largest cell size that satisfies both:
+ *  - target land coverage (~45 % of sphere)
+ *  - largest island fits in its angular Fibonacci cell
+ *
+ * Prefers smaller hexes over a bloated planet. Planet radius only grows
+ * when hexes would become unreadable (< READABLE_MIN).
+ */
+function computePlanetLayout(
   totalCells: number,
   islandCount: number,
-  maxIslandCells: number,
-): number {
-  const PLANET_RADIUS = 5
-  const HEX_AREA = (3 * Math.sqrt(3)) / 2 // area of unit hex
+  maxIslandExtentUnit: number,
+): { cellSize: number; planetRadius: number } {
+  const MAX_CELL_SIZE = 0.25
+  const TARGET_COVERAGE = 0.45
+  const READABLE_MIN = 0.024
+  const SAFETY = 0.88
+  const HEX_AREA = (3 * Math.sqrt(3)) / 2
 
-  // Constraint 1: global coverage
-  const sphereSurfaceArea = 4 * Math.PI * PLANET_RADIUS * PLANET_RADIUS
-  const availableArea = sphereSurfaceArea * 0.35
+  const angularRadius = islandAngularRadius(islandCount)
+
   const csFromCoverage = Math.sqrt(
-    availableArea / Math.max(totalCells, 1) / HEX_AREA,
+    (4 * Math.PI * BASE_PLANET_RADIUS ** 2 * TARGET_COVERAGE) /
+      (Math.max(totalCells, 1) * HEX_AREA),
   )
 
-  // Constraint 2: per-island angular budget
-  // Each island owns ~4π/N steradians → angular radius ≈ sqrt(4π/N)/2 rad.
-  // Physical radius budget = angular_radius * PLANET_RADIUS.
-  // Island footprint radius ≈ HEX_PACK * sqrt(maxIslandCells) * cellSize.
-  const SAFETY = 0.90 // ~5% breathing room — islands nearly touch but don't overlap
-  const HEX_PACK = 1.1 // empirical hex-packing radius factor
-  const angularRadius = Math.sqrt((4 * Math.PI) / Math.max(islandCount, 1)) / 2
-  const physicalBudget = SAFETY * angularRadius * PLANET_RADIUS
-  const csFromAngular =
-    physicalBudget / (HEX_PACK * Math.sqrt(Math.max(maxIslandCells, 1)))
+  const csFromExtent =
+    (SAFETY * angularRadius * BASE_PLANET_RADIUS) / maxIslandExtentUnit
 
-  const cs = Math.min(csFromCoverage, csFromAngular)
-  return Math.max(0.04, Math.min(0.25, cs))
+  let cellSize = Math.min(csFromCoverage, csFromExtent, MAX_CELL_SIZE)
+  let planetRadius = BASE_PLANET_RADIUS
+
+  if (cellSize < READABLE_MIN) {
+    planetRadius = BASE_PLANET_RADIUS * (READABLE_MIN / cellSize)
+    cellSize = READABLE_MIN
+  }
+
+  return { cellSize, planetRadius }
 }
 
 /**
@@ -492,13 +534,11 @@ export function buildPlanetSnapshot(
 
   let allTerritories: Territory[] = []
   let grandTotalCells = 0
-  let maxIslandCells = 0
 
   const islands: Island[] = islandEntries.map(({ id, devs }, i) => {
     const { territories, totalCells } = growTerritories(devs, id)
     allTerritories = allTerritories.concat(territories)
     grandTotalCells += totalCells
-    if (totalCells > maxIslandCells) maxIslandCells = totalCells
 
     return {
       id,
@@ -509,11 +549,16 @@ export function buildPlanetSnapshot(
     }
   })
 
-  const cellSize = computeCellSize(grandTotalCells, islandEntries.length, maxIslandCells)
+  const { cellSize, planetRadius } = computePlanetLayout(
+    grandTotalCells,
+    islandEntries.length,
+    computeMaxIslandExtentUnit(allTerritories),
+  )
 
   return {
     version: apiResponse.updated_at,
     cellSize,
+    planetRadius,
     islands,
     territories: allTerritories,
   }
