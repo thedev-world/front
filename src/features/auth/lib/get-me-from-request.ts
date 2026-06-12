@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import type { MeProfile } from "@/features/auth/types/me";
 
-const SESSION_COOKIE_NAME = "thedevworld_session";
+const SESSION_COOKIE_NAME = "devplanet_session";
 
 export async function getMeFromRequest(
   request: NextRequest,
