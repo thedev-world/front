@@ -8,6 +8,7 @@ import { usePlanetData } from "../api/use-planet-data";
 import { usePlanetStore } from "../stores/planet-store";
 import { OnboardingStats } from "./onboarding-stats";
 import { PlanetLeaderboard } from "./planet-leaderboard";
+import { PlanetLoadingOverlay } from "./planet-loading-overlay";
 
 const PlanetCanvas = dynamic(
   () =>
@@ -27,15 +28,7 @@ export function PlanetHome() {
 
   return (
     <div className="relative h-full w-full">
-      {/* Loading indicator */}
-      {isPending && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
-            <p className="text-sm text-zinc-400">Loading planet…</p>
-          </div>
-        </div>
-      )}
+      <PlanetLoadingOverlay isLoading={isPending} />
 
       {/* 3D Canvas — full screen */}
       <div className="h-full w-full">
