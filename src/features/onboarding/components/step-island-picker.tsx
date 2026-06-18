@@ -6,6 +6,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { BadgeGlow } from "@/components/ui/badge-glow";
 import { useMe } from "@/features/auth/api/use-me";
 import { useIslands } from "../api/use-islands";
+import {
+  getIslandImagePath,
+  preloadIslandImage,
+} from "../lib/island-image";
 
 const LEAVE_MS = 280;
 
@@ -65,6 +69,9 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
       clearTimeout(hoverClearTimer.current);
       hoverClearTimer.current = null;
     }
+    void preloadIslandImage(value).then(() => {
+      setLoadedSlugs((prev) => new Set([...prev, value]));
+    });
     setHovered(value);
   }
 
@@ -88,19 +95,36 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
     };
   }, []);
 
-  // Preload all island images and track when each one is ready.
+  // Preload island images in parallel, wait for decode so hover never shows partial frames.
   useEffect(() => {
     if (!islands.length) return;
+
+    let cancelled = false;
+    const preloadLinks: HTMLLinkElement[] = [];
+
     islands.forEach((island) => {
-      const img = new Image();
-      img.onload = () =>
-        setLoadedSlugs((prev) => new Set([...prev, island.value]));
-      img.src = `/images/islands/${island.value}-islands.png`;
-      // Already in browser cache → complete fires synchronously after src is set.
-      if (img.complete) {
-        setLoadedSlugs((prev) => new Set([...prev, island.value]));
-      }
+      const href = getIslandImagePath(island.value);
+      if (!href) return;
+
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = href;
+      document.head.appendChild(link);
+      preloadLinks.push(link);
+
+      void preloadIslandImage(island.value)
+        .then(() => {
+          if (cancelled) return;
+          setLoadedSlugs((prev) => new Set([...prev, island.value]));
+        })
+        .catch(() => {});
     });
+
+    return () => {
+      cancelled = true;
+      preloadLinks.forEach((link) => link.remove());
+    };
   }, [islands]);
 
   function handleSelect(value: string) {
@@ -157,17 +181,35 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
       <div className="relative flex-1 min-h-64 sm:min-h-80">
         {/* Island — oversized, translated off the left and bottom edges */}
         <div className="pointer-events-none absolute bottom-0 left-0 h-[20rem] w-[20rem] translate-y-20 -translate-x-16 sm:h-[32rem] sm:w-[32rem] sm:translate-y-24 sm:-translate-x-20">
+          {/* Keep decoded bitmaps warm — same static URL as BadgeGlow with unoptimized */}
+          <div aria-hidden className="absolute h-0 w-0 overflow-hidden opacity-0">
+            {islands
+              .filter((island) => loadedSlugs.has(island.value))
+              .map((island) => {
+                const src = getIslandImagePath(island.value);
+                if (!src) return null;
+                return (
+                  <img
+                    key={`warm-${island.value}`}
+                    src={src}
+                    alt=""
+                    decoding="async"
+                  />
+                );
+              })}
+          </div>
+
           {leaving && (
             <div
               key={`leave-${leaving}`}
               className="absolute inset-0 island-picker-leave"
             >
               <BadgeGlow
-                src={`/images/islands/${leaving}-islands.png`}
+                src={getIslandImagePath(leaving)!}
                 alt={leaving}
                 width={480}
                 height={480}
-                priority
+                unoptimized
                 intensity="strong"
                 className="h-full w-full"
               />
@@ -179,10 +221,11 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
               className="absolute inset-0 island-picker-enter"
             >
               <BadgeGlow
-                src={`/images/islands/${shown}-islands.png`}
+                src={getIslandImagePath(shown)!}
                 alt={shown}
                 width={480}
                 height={480}
+                unoptimized
                 priority
                 intensity="strong"
                 className="h-full w-full"

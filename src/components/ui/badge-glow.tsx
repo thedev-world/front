@@ -7,6 +7,7 @@ type BadgeGlowProps = {
   width: number;
   height: number;
   priority?: boolean;
+  unoptimized?: boolean;
   className?: string;
   imageClassName?: string;
   /**
@@ -35,6 +36,7 @@ export function BadgeGlow({
   width,
   height,
   priority,
+  unoptimized,
   className,
   imageClassName,
   intensity = "subtle",
@@ -51,6 +53,7 @@ export function BadgeGlow({
           aria-hidden
           width={width}
           height={height}
+          unoptimized={unoptimized}
           draggable={false}
           className={cn(
             "pointer-events-none absolute inset-0 h-full w-full select-none object-contain",
@@ -68,6 +71,7 @@ export function BadgeGlow({
         width={width}
         height={height}
         priority={priority}
+        unoptimized={unoptimized}
         draggable={false}
         className={cn(
           "relative z-10 h-full w-full select-none object-contain",
