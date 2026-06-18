@@ -14,25 +14,56 @@ const CANVAS_W = 512
 const CANVAS_H = 96
 const BASE_OPACITY = 0.55
 
+function drawMapLabel(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  font: string,
+  fill: string,
+  haloWidth: number,
+) {
+  ctx.font = font
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  ctx.lineJoin = "round"
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.45)"
+  ctx.lineWidth = haloWidth
+  ctx.strokeText(text, x, y)
+  ctx.fillStyle = fill
+  ctx.fillText(text, x, y)
+}
+
 function makeTextTexture(name: string, cells: number, devs: number): THREE.CanvasTexture {
   const canvas = document.createElement("canvas")
   canvas.width = CANVAS_W
   canvas.height = CANVAS_H
 
   const ctx = canvas.getContext("2d")!
-  ctx.fillStyle = "#ffffff"
-  ctx.textAlign = "center"
 
-  ctx.font = "bold 22px sans-serif"
-  ctx.globalAlpha = 1
-  ctx.textBaseline = "middle"
-  ctx.fillText(name, CANVAS_W / 2, CANVAS_H * 0.38)
+  drawMapLabel(
+    ctx,
+    name,
+    CANVAS_W / 2,
+    CANVAS_H * 0.38,
+    "bold 22px system-ui, -apple-system, sans-serif",
+    "#ffffff",
+    6,
+  )
 
-  ctx.font = "16px sans-serif"
-  ctx.globalAlpha = 0.6
-  ctx.fillText(`${cells} CELLS / ${devs} DEVS`, CANVAS_W / 2, CANVAS_H * 0.72)
+  drawMapLabel(
+    ctx,
+    `${cells} CELLS / ${devs} DEVS`,
+    CANVAS_W / 2,
+    CANVAS_H * 0.72,
+    "16px system-ui, -apple-system, sans-serif",
+    "rgba(255, 255, 255, 0.82)",
+    5,
+  )
 
-  return new THREE.CanvasTexture(canvas)
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+  return texture
 }
 
 type LabelMeshProps = {

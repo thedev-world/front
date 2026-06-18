@@ -124,6 +124,13 @@ export function IslandTerritories({ snapshot }: Props) {
     return idx === -1 ? null : idx
   }, [highlightedLogin, snapshot])
 
+  // Solo island: one dev owns the whole island, label sits at the anchor — skip fill glow
+  const isSoloIslandHighlight = useMemo(() => {
+    if (myTerritoryIndex === null) return false
+    const islandId = snapshot.territories[myTerritoryIndex].islandId
+    return snapshot.territories.filter((t) => t.islandId === islandId).length === 1
+  }, [myTerritoryIndex, snapshot])
+
   const myHighlightMeshRef = useRef<THREE.Mesh>(null)
   const myBorderRef = useRef<THREE.LineSegments>(null)
   const myPulseRef = useRef(0)
@@ -192,8 +199,13 @@ export function IslandTerritories({ snapshot }: Props) {
     myPulseRef.current += (target - myPulseRef.current) * factor
     const t = clock.getElapsedTime()
     const pulse = isVisible ? Math.sin(t * 1.5) * 0.04 : 0
-    mat.opacity = myPulseRef.current * (0.22 + pulse)
-    lineMat.opacity = myPulseRef.current * (0.6 + pulse * 1.2)
+    if (isSoloIslandHighlight) {
+      mat.opacity = 0
+      lineMat.opacity = myPulseRef.current * (0.9 + pulse * 1.5)
+    } else {
+      mat.opacity = myPulseRef.current * (0.22 + pulse)
+      lineMat.opacity = myPulseRef.current * (0.6 + pulse * 1.2)
+    }
   })
 
   // Leaderboard "focus" highlight
