@@ -4,12 +4,11 @@ import { useFrame } from "@react-three/fiber"
 import { useMemo, useRef } from "react"
 import * as THREE from "three"
 
-import { sphericalToWorld, islandTangentFrame, PLANET_RADIUS } from "../lib/planet-projection"
+import { computeIslandLabelTransform, PLANET_RADIUS } from "../lib/planet-projection"
 import { usePlanetData } from "../api/use-planet-data"
 import { usePlanetStore } from "../stores/planet-store"
 import type { Island } from "../types/snapshot"
 
-const LABEL_OFFSET = 0.15
 const CANVAS_W = 512
 const CANVAS_H = 96
 const BASE_OPACITY = 0.55
@@ -123,11 +122,12 @@ export function IslandLabels({ islands, planetRadius = PLANET_RADIUS }: Props) {
     }
 
     return islands.map((island) => {
-      const [phi, theta] = island.anchor
-      const position = sphericalToWorld(phi, theta, planetRadius + LABEL_OFFSET)
-      const { normal, right, up } = islandTangentFrame(phi, theta)
-      const matrix = new THREE.Matrix4().makeBasis(right, up, normal)
-      const rotation = new THREE.Euler().setFromRotationMatrix(matrix)
+      const { position, rotation } = computeIslandLabelTransform(
+        island,
+        snapshot.territories,
+        snapshot.cellSize,
+        planetRadius,
+      )
       const devs = devCountByIsland.get(island.id) ?? 0
       const texture = makeTextTexture(`${island.name.toUpperCase()} ISLAND`, island.cellCount, devs)
       return { island, position, rotation, texture }
