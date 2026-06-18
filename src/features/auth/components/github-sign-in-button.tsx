@@ -1,5 +1,5 @@
 import { buttonVariants } from "@/components/ui/button";
-import { githubOAuthStartUrl } from "@/features/auth/lib/github-oauth-start-url";
+import { resolveApiUrl } from "@/lib/api-url";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
 export function GitHubSignInButton({ className, children }: Props) {
   return (
     <a
-      href={githubOAuthStartUrl()}
+      href={resolveApiUrl("/api/v1/auth/github/start")}
       className={cn(
         buttonVariants({ variant: "default" }),
         className,
