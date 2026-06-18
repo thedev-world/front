@@ -29,6 +29,7 @@ export type MeProfile = {
   player_class: MePlayerClass;
   island: string | null;
   is_onboarded: boolean;
+  avatar_url: string | null;
   last_sync_at: string;
   next_sync_at: string | null;
   created_at: string;
