@@ -34,6 +34,7 @@ export function IslandTerritories({ snapshot }: Props) {
     () => () => {
       meshData.geometry.dispose()
       meshData.borderGeometry.dispose()
+      meshData.seamGeometry.dispose()
     },
     [meshData],
   )
@@ -453,13 +454,24 @@ export function IslandTerritories({ snapshot }: Props) {
         <meshStandardMaterial
           vertexColors
           flatShading
-          roughness={0.4}
-          metalness={0.05}
+          roughness={0.65}
+          metalness={0.0}
           emissive="#ffffff"
-          emissiveIntensity={0.08}
+          emissiveIntensity={0.02}
           side={THREE.DoubleSide}
         />
       </mesh>
+
+      {/* Permanent dark contour between adjacent developers' territories */}
+      <lineSegments geometry={meshData.seamGeometry} frustumCulled={false}>
+        <lineBasicMaterial
+          color="#10151c"
+          transparent
+          opacity={0.28}
+          depthTest
+          depthWrite={false}
+        />
+      </lineSegments>
 
       {/* Hover highlight (cyan) */}
       <mesh ref={highlightMeshRef} frustumCulled={false}>

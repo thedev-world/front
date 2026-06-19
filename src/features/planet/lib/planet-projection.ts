@@ -7,8 +7,8 @@ export const BASE_PLANET_RADIUS = 5
 /** Default radius when no snapshot is available. Prefer `snapshot.planetRadius`. */
 export const PLANET_RADIUS = BASE_PLANET_RADIUS
 
-const TERRAIN_HEIGHT_RATIO = 0.5
-const MIN_TERRAIN_HEIGHT = 0.025
+const TERRAIN_HEIGHT_RATIO = 0.95
+const MIN_TERRAIN_HEIGHT = 0.05
 
 /** Matches territory mesh extrusion height in territory-mesh-builder. */
 export function terrainSurfaceHeight(cellSize: number): number {

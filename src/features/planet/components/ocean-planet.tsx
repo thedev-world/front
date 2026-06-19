@@ -35,17 +35,25 @@ const OCEAN_FRAG = `
     vec3 dy = dFdy(vPos);
     vec3 n = normalize(cross(dx, dy));
 
-    vec3 light1 = normalize(vec3(0.8, 0.5, 0.4));
-    vec3 light2 = normalize(vec3(-0.5, 0.2, -0.6));
-    float diff = max(dot(n, light1), 0.0) * 0.65
-               + max(dot(n, light2), 0.0) * 0.2
-               + 0.22;
+    // Key light aligned with the scene's main directionalLight ([8,5,4]).
+    vec3 keyLight = normalize(vec3(0.8, 0.5, 0.4));
+    vec3 fillLight = normalize(vec3(-0.5, 0.2, -0.6));
 
-    // Depth tint: faces pointing "up" are lighter
+    // Strong key + soft fill + low ambient → clear lit/dark side.
+    float key = max(dot(n, keyLight), 0.0);
+    float fill = max(dot(n, fillLight), 0.0);
+    float diff = key * 0.9 + fill * 0.18 + 0.16;
+
+    // Vertical depth tint for subtle ocean color variation.
     float depth = dot(normalize(vPos), vec3(0.0, 1.0, 0.0)) * 0.5 + 0.5;
     vec3 col = mix(uDeep, uColor, depth);
 
-    gl_FragColor = vec4(col * diff + uLight * 0.06, 1.0);
+    // Glossy specular highlight on the lit top of the sphere.
+    vec3 viewDir = normalize(cameraPosition - vPos);
+    vec3 halfDir = normalize(keyLight + viewDir);
+    float spec = pow(max(dot(n, halfDir), 0.0), 22.0) * 0.35;
+
+    gl_FragColor = vec4(col * diff + uLight * spec, 1.0);
   }
 `
 
@@ -68,7 +76,8 @@ const FRESNEL_FRAG = `
   varying vec3 vViewDir;
 
   void main() {
-    float fresnel = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewDir))), 5.0);
+    // Tight, subtle rim glow (higher power = thinner halo at the limb).
+    float fresnel = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewDir))), 4.3);
     gl_FragColor = vec4(uColor, fresnel * uStrength);
   }
 `
@@ -86,8 +95,8 @@ export function OceanPlanet({ planetRadius = PLANET_RADIUS }: Props) {
         vertexShader: FRESNEL_VERT,
         fragmentShader: FRESNEL_FRAG,
         uniforms: {
-          uColor: { value: new THREE.Color("#38bdf8") },
-          uStrength: { value: 0.25 },
+          uColor: { value: new THREE.Color("#5cc8ff") },
+          uStrength: { value: 0.16 },
         },
         transparent: true,
         depthWrite: false,
@@ -107,7 +116,7 @@ export function OceanPlanet({ planetRadius = PLANET_RADIUS }: Props) {
     <group>
       {/* Animated low-poly ocean */}
       <mesh>
-        <icosahedronGeometry args={[planetRadius, 4]} />
+        <icosahedronGeometry args={[planetRadius, 5]} />
         <shaderMaterial
           ref={oceanMatRef}
           vertexShader={OCEAN_VERT}
@@ -124,7 +133,7 @@ export function OceanPlanet({ planetRadius = PLANET_RADIUS }: Props) {
 
       {/* Fresnel atmosphere rim — renderOrder 2 so it renders after the intro text (renderOrder 1) and visually overlaps it */}
       <mesh material={fresnelMat} renderOrder={2}>
-        <sphereGeometry args={[planetRadius * 1.07, 48, 48]} />
+        <sphereGeometry args={[planetRadius * 1.03, 64, 64]} />
       </mesh>
     </group>
   )

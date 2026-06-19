@@ -230,11 +230,10 @@ export function PlanetScene() {
 
   return (
     <>
-      {/* Cinematic 3-point lighting */}
-      <ambientLight intensity={0.8} color="#c8ddf5" />
-      <directionalLight position={[8, 5, 4]} intensity={1.0} color="#ffffff" />
-      <directionalLight position={[-6, 2, -5]} intensity={0.6} color="#d0eeff" />
-      <directionalLight position={[0, -6, 6]} intensity={0.4} color="#e8f4ff" />
+      <ambientLight intensity={0.45} color="#c8ddf5" />
+      <directionalLight position={[8, 5, 4]} intensity={1.7} color="#ffffff" />
+      <directionalLight position={[-6, 2, -5]} intensity={0.4} color="#d0eeff" />
+      <directionalLight position={[0, -6, 6]} intensity={0.25} color="#e8f4ff" />
 
       {/* Subtle rim light from behind for atmosphere edge glow */}
       <pointLight position={[0, 0, -15]} intensity={0.3} color="#38bdf8" />
@@ -281,8 +280,8 @@ export function PlanetScene() {
 
       <EffectComposer>
         <Bloom
-          luminanceThreshold={0.7}
-          intensity={0.4}
+          luminanceThreshold={0.82}
+          intensity={0.35}
           radius={0.7}
           mipmapBlur
         />
