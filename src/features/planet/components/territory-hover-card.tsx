@@ -30,7 +30,7 @@ export function TerritoryHoverCard() {
               className="inline-block h-2 w-2 rounded-full"
               style={{ backgroundColor: island.color }}
             />
-            {island.name}
+            {island.name} island
           </span>
         )}
         <span>·</span>

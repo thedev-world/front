@@ -11,7 +11,7 @@ import type { Island } from "../types/snapshot"
 
 const CANVAS_W = 512
 const CANVAS_H = 96
-const BASE_OPACITY = 0.55
+const BASE_OPACITY = 0.90
 
 function drawMapLabel(
   ctx: CanvasRenderingContext2D,
@@ -26,7 +26,7 @@ function drawMapLabel(
   ctx.textAlign = "center"
   ctx.textBaseline = "middle"
   ctx.lineJoin = "round"
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.45)"
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.90)"
   ctx.lineWidth = haloWidth
   ctx.strokeText(text, x, y)
   ctx.fillStyle = fill
@@ -45,9 +45,9 @@ function makeTextTexture(name: string, cells: number, devs: number): THREE.Canva
     name,
     CANVAS_W / 2,
     CANVAS_H * 0.38,
-    "bold 22px system-ui, -apple-system, sans-serif",
+    "bold 28px system-ui, -apple-system, sans-serif",
     "#ffffff",
-    6,
+    12,
   )
 
   drawMapLabel(
@@ -55,9 +55,9 @@ function makeTextTexture(name: string, cells: number, devs: number): THREE.Canva
     `${cells} CELLS / ${devs} DEVS`,
     CANVAS_W / 2,
     CANVAS_H * 0.72,
-    "16px system-ui, -apple-system, sans-serif",
-    "rgba(255, 255, 255, 0.82)",
-    5,
+    "18px system-ui, -apple-system, sans-serif",
+    "rgba(255, 255, 255, 0.95)",
+    9,
   )
 
   const texture = new THREE.CanvasTexture(canvas)

@@ -25,7 +25,7 @@ export function computeIslandLabelTransform(
   territories: Territory[],
   cellSize: number,
   planetRadius: number,
-  surfaceOffset = 0.02,
+  surfaceOffset = 0.08,
 ): IslandLabelTransform {
   const islandCells = territories
     .filter((t) => t.islandId === island.id)
