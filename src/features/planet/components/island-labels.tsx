@@ -5,7 +5,7 @@ import { useMemo, useRef } from "react"
 import * as THREE from "three"
 
 import { computeIslandLabelTransform, PLANET_RADIUS } from "../lib/planet-projection"
-import { usePlanetData } from "../api/use-planet-data"
+import { useEnrichedPlanetData } from "../api/use-enriched-planet-data"
 import { usePlanetStore } from "../stores/planet-store"
 import type { Island } from "../types/snapshot"
 
@@ -74,7 +74,7 @@ type LabelMeshProps = {
 
 function IslandLabel({ island, position, rotation, texture }: LabelMeshProps) {
   const matRef = useRef<THREE.MeshBasicMaterial>(null)
-  const { data: snapshot } = usePlanetData()
+  const { data: snapshot } = useEnrichedPlanetData()
   const hoveredTerritoryIndex = usePlanetStore((s) => s.hoveredTerritoryIndex)
   const hoveredIslandId = hoveredTerritoryIndex !== null
     ? snapshot?.territories[hoveredTerritoryIndex]?.islandId
@@ -111,7 +111,7 @@ type Props = {
 }
 
 export function IslandLabels({ islands, planetRadius = PLANET_RADIUS }: Props) {
-  const { data: snapshot } = usePlanetData()
+  const { data: snapshot } = useEnrichedPlanetData()
 
   const labels = useMemo(() => {
     if (!snapshot) return []

@@ -1,10 +1,10 @@
 "use client"
 
-import { usePlanetData } from "../api/use-planet-data"
+import { useEnrichedPlanetData } from "../api/use-enriched-planet-data"
 import { usePlanetStore } from "../stores/planet-store"
 
 export function TerritoryHoverCard() {
-  const { data: snapshot } = usePlanetData()
+  const { data: snapshot } = useEnrichedPlanetData()
   const { hoveredTerritoryIndex, mousePos } = usePlanetStore()
 
   if (hoveredTerritoryIndex === null || !snapshot) return null

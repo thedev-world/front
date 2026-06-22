@@ -3,16 +3,15 @@
 import { OrbitControls } from "@react-three/drei"
 import { Bloom, EffectComposer } from "@react-three/postprocessing"
 import { useFrame } from "@react-three/fiber"
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 
 import { useMe } from "@/features/auth/api/use-me"
-import { usePlanetData } from "../api/use-planet-data"
-import { buildSnapshotWithMe } from "../lib/planet-me"
+import { useEnrichedPlanetData } from "../api/use-enriched-planet-data"
 import { sphericalToWorld } from "../lib/planet-projection"
 import { usePlanetStore } from "../stores/planet-store"
-import type { Island, PlanetSnapshot } from "../types/snapshot"
+import type { Island } from "../types/snapshot"
 
 import { IntroTextSweep } from "./intro-text-sweep"
 import { IslandLabels } from "./island-labels"
@@ -33,7 +32,7 @@ const INTRO_END_RADIUS = 16
 const INTRO_START_PHI = Math.PI / 2.5
 
 export function PlanetScene() {
-  const { data: rawSnapshot } = usePlanetData()
+  const { data: enrichedSnapshot } = useEnrichedPlanetData()
   const { data: me, isLoading: meLoading } = useMe()
 
   const {
@@ -52,12 +51,6 @@ export function PlanetScene() {
   useEffect(() => {
     if (me?.github_login) setHighlightedLogin(me.github_login)
   }, [me?.github_login, setHighlightedLogin])
-
-  // Inject the user into the snapshot if they are not yet in the planet JSON
-  const enrichedSnapshot: PlanetSnapshot | undefined = useMemo(() => {
-    if (!rawSnapshot || !me) return rawSnapshot
-    return buildSnapshotWithMe(rawSnapshot, me)
-  }, [rawSnapshot, me])
 
   // Camera focus triggered by leaderboard island accordion
   useEffect(() => {

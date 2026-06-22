@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 
 import { useMe } from "@/features/auth/api/use-me"
-import { usePlanetData } from "../api/use-planet-data"
+import { useEnrichedPlanetData } from "../api/use-enriched-planet-data"
 import type { Island, Territory } from "../types/snapshot"
 
 export type LeaderboardEntry = Territory & {
@@ -41,7 +41,7 @@ function rankEntries(
 }
 
 export function usePlanetLeaderboard(): PlanetLeaderboard | null {
-  const { data: snapshot } = usePlanetData()
+  const { data: snapshot } = useEnrichedPlanetData()
   const { data: me } = useMe()
 
   return useMemo(() => {

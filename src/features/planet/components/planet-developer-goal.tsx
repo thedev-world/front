@@ -5,10 +5,10 @@ import { Users } from "lucide-react";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 import { formatFullNumber } from "@/features/profile/lib/format";
 import { usePlanetConfig } from "../api/use-planet-config";
-import { usePlanetData } from "../api/use-planet-data";
+import { useEnrichedPlanetData } from "../api/use-enriched-planet-data";
 
 export function PlanetDeveloperGoal() {
-  const { data: snapshot } = usePlanetData();
+  const { data: snapshot } = useEnrichedPlanetData();
   const { data: config } = usePlanetConfig();
 
   if (!snapshot || !config) return null;
