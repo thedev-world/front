@@ -8,6 +8,8 @@ import { LevelReveal } from "./level-reveal";
 import { useUpdateIsland } from "../api/use-update-island";
 import { useCompleteOnboarding } from "../api/use-complete-onboarding";
 import { usePlanetStore } from "@/features/planet/stores/planet-store";
+import { usePlayerClasses } from "../api/use-player-classes";
+import { usePreloadImages } from "@/hooks/use-preload-images";
 
 type Step = "island" | "scan" | "reveal";
 
@@ -15,6 +17,9 @@ const TRANSITION_MS = 700;
 
 export function OnboardingFlow() {
   const [step, setStep] = useState<Step>("island");
+  const { data: playerClasses } = usePlayerClasses();
+
+  usePreloadImages(playerClasses || [], (cls) => cls.badge);
   const [showScanLayer, setShowScanLayer] = useState(false);
   const [scanExit, setScanExit] = useState(false);
   const [showRevealLayer, setShowRevealLayer] = useState(false);

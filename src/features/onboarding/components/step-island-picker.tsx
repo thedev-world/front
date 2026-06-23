@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { BadgeGlow } from "@/components/ui/badge-glow";
 import { useMe } from "@/features/auth/api/use-me";
 import { useIslands } from "../api/use-islands";
+import { usePreloadImages } from "@/hooks/use-preload-images";
 import {
   getIslandImagePath,
   preloadIslandImage,
@@ -95,37 +96,11 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
     };
   }, []);
 
-  // Preload island images in parallel, wait for decode so hover never shows partial frames.
-  useEffect(() => {
-    if (!islands.length) return;
-
-    let cancelled = false;
-    const preloadLinks: HTMLLinkElement[] = [];
-
-    islands.forEach((island) => {
-      const href = getIslandImagePath(island.value);
-      if (!href) return;
-
-      const link = document.createElement("link");
-      link.rel = "preload";
-      link.as = "image";
-      link.href = href;
-      document.head.appendChild(link);
-      preloadLinks.push(link);
-
-      void preloadIslandImage(island.value)
-        .then(() => {
-          if (cancelled) return;
-          setLoadedSlugs((prev) => new Set([...prev, island.value]));
-        })
-        .catch(() => {});
-    });
-
-    return () => {
-      cancelled = true;
-      preloadLinks.forEach((link) => link.remove());
-    };
-  }, [islands]);
+  usePreloadImages(
+    islands,
+    (island) => getIslandImagePath(island.value),
+    (island) => setLoadedSlugs((prev) => new Set([...prev, island.value]))
+  );
 
   function handleSelect(value: string) {
     setUserSelected(value);
@@ -189,6 +164,7 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
                 const src = getIslandImagePath(island.value);
                 if (!src) return null;
                 return (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     key={`warm-${island.value}`}
                     src={src}

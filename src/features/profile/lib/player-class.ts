@@ -19,14 +19,14 @@ export type PlayerClassMeta = {
 
 /** Badge paths are UI-only assets. */
 export const BADGE_BY_SLUG: Record<PlayerClassSlug, string> = {
-  seedling:   "/images/ranking-badges/seedling-badge.png",
-  builder:    "/images/ranking-badges/builder-badge.png",
-  crafter:    "/images/ranking-badges/crafter-badge.png",
-  architect:  "/images/ranking-badges/architect-badge.png",
-  maintainer: "/images/ranking-badges/maintainer-badge.png",
-  legend:     "/images/ranking-badges/legend-badge.png",
-  sovereign:  "/images/ranking-badges/sovereign-badge.png",
-  founder:    "/images/ranking-badges/founder-badge.png",
+  seedling:   "/images/ranking-badges/seedling-badge.webp",
+  builder:    "/images/ranking-badges/builder-badge.webp",
+  crafter:    "/images/ranking-badges/crafter-badge.webp",
+  architect:  "/images/ranking-badges/architect-badge.webp",
+  maintainer: "/images/ranking-badges/maintainer-badge.webp",
+  legend:     "/images/ranking-badges/legend-badge.webp",
+  sovereign:  "/images/ranking-badges/sovereign-badge.webp",
+  founder:    "/images/ranking-badges/founder-badge.webp",
 };
 
 /** Fallback used in loading states and SSR. */
@@ -54,5 +54,26 @@ export function nextPlayerClass(
 ): PlayerClassMeta | null {
   const current = resolvePlayerClass(name, classes);
   return classes.find((c) => c.tier === current.tier + 1) ?? null;
+}
+
+/**
+ * Loads a badge image and waits for full decode so it paints instantly on display.
+ * Uses the same static URL as BadgeGlow with unoptimized, shares the HTTP cache.
+ */
+export async function preloadBadgeImage(src: string): Promise<void> {
+  if (typeof window === "undefined" || !src) return;
+
+  const img = new Image();
+  img.decoding = "async";
+  img.src = src;
+
+  if (!img.complete) {
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error(`Failed to load ${src}`));
+    });
+  }
+
+  await img.decode();
 }
 

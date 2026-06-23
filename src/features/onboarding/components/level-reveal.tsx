@@ -16,6 +16,7 @@ import { useRankRevealSequence } from "../lib/use-rank-reveal-sequence";
 import { useXpConfig } from "../api/use-xp-config";
 import { usePlayerClasses } from "../api/use-player-classes";
 import type { SyncDiffSummary } from "@/features/auth/types/sync";
+import { preloadBadgeImage } from "@/features/profile/lib/player-class";
 
 
 export function LevelReveal({
@@ -33,6 +34,7 @@ export function LevelReveal({
 } = {}) {
   const router = useRouter();
   const { data: me } = useMe();
+  const [loadedBadges, setLoadedBadges] = useState<Set<string>>(new Set());
   const xpBrut = endXp ?? me?.xp_brut ?? 0;
   const resolvedStartXp = startXp ?? 0;
 
@@ -81,8 +83,11 @@ export function LevelReveal({
 
   useEffect(() => {
     playerClasses?.forEach((cls) => {
-      const img = new Image();
-      img.src = cls.badge;
+      void preloadBadgeImage(cls.badge)
+        .then(() => {
+          setLoadedBadges((prev) => new Set([...prev, cls.badge]));
+        })
+        .catch(() => {});
     });
   }, [playerClasses]);
 
@@ -460,6 +465,21 @@ export function LevelReveal({
         >
           {ctaLabel}
         </Button>
+      </div>
+
+      {/* Keep decoded bitmaps warm */}
+      <div aria-hidden className="absolute h-0 w-0 overflow-hidden opacity-0">
+        {playerClasses
+          ?.filter((cls) => loadedBadges.has(cls.badge))
+          .map((cls) => (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={`warm-${cls.slug}`}
+              src={cls.badge}
+              alt=""
+              decoding="async"
+            />
+          ))}
       </div>
     </div>
   );

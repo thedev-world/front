@@ -36,7 +36,7 @@ export function BadgeGlow({
   width,
   height,
   priority,
-  unoptimized,
+  unoptimized = true,
   className,
   imageClassName,
   intensity = "subtle",
