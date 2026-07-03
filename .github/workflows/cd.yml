@@ -1,14 +1,12 @@
-name: Front - CD
+name: CD
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [master]
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "SHA tag to deploy (e.g. sha-abc1234)"
+        description: "Tag or SHA to deploy manually (e.g. v1.2.3 or v1.2.3-sha-abc1234)"
         required: true
 
 env:
@@ -16,24 +14,22 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Build & Push — after CI passes on master
+  # Build & Push - Builds the image directly from the release commit
   # ---------------------------------------------------------------------------
   build-and-push:
-    if: >
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success'
-    name: Build & Push
+    if: github.event_name == 'release'
+    name: Build & Push Release
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Set image tag
+      - name: Get short SHA and tag info
         id: meta
-        run: echo "tag=sha-$(echo ${{ github.event.workflow_run.head_sha }} | head -c7)" >> $GITHUB_OUTPUT
+        run: |
+          echo "short_sha=$(echo ${{ github.sha }} | head -c7)" >> $GITHUB_OUTPUT
+          echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
       - name: Log in to Scaleway registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
@@ -43,27 +39,40 @@ jobs:
           docker build \
             --build-arg BACKEND_URL=http://api:8000 \
             --build-arg NEXT_PUBLIC_API_URL= \
-            -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }} \
+            -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }} \
+            -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}-sha-${{ steps.meta.outputs.short_sha }} \
             -t ${{ env.IMAGE }}:latest \
             .
 
-      - name: Push image
+      - name: Push image tags
         run: |
-          docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+          docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}
+          docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}-sha-${{ steps.meta.outputs.short_sha }}
           docker push ${{ env.IMAGE }}:latest
 
-      - name: Summary
-        run: echo "Image pushed → ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}"
-
   # ---------------------------------------------------------------------------
-  # Deploy — manual promotion of a SHA tag to prod
+  # Deploy - Deploys to prod after build (release) or manually (dispatch)
   # ---------------------------------------------------------------------------
   deploy:
-    if: github.event_name == 'workflow_dispatch'
+    needs: build-and-push
+    # Execute if workflow is dispatched manually OR if release build-and-push succeeded
+    if: |
+      always() &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'release' && needs.build-and-push.result == 'success'))
     name: Deploy to prod
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get deploy tag
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}-sha-$(echo ${{ github.sha }} | head -c7)" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -71,4 +80,4 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            /opt/devplanet/devplanet-infra/scripts/deploy.sh front ${{ inputs.image_tag }}
+            /opt/devplanet/devplanet-infra/scripts/deploy.sh front ${{ steps.meta.outputs.tag }}

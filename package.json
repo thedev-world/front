@@ -13,7 +13,7 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "postinstall": "node scripts/ensure-native-css.mjs",
+    "postinstall": "node scripts/ensure-native-binaries.mjs",
     "prepare": "husky"
   },
   "lint-staged": {
