@@ -6,22 +6,27 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+/** Native optional deps that npm often skips when the lockfile was built on another OS. */
 const PLATFORM_PACKAGES = {
   "darwin-arm64": {
     lightningcss: "lightningcss-darwin-arm64",
     oxide: "@tailwindcss/oxide-darwin-arm64",
+    rolldown: "@rolldown/binding-darwin-arm64",
   },
   "darwin-x64": {
     lightningcss: "lightningcss-darwin-x64",
     oxide: "@tailwindcss/oxide-darwin-x64",
+    rolldown: "@rolldown/binding-darwin-x64",
   },
   "linux-x64": {
     lightningcss: "lightningcss-linux-x64-gnu",
     oxide: "@tailwindcss/oxide-linux-x64-gnu",
+    rolldown: "@rolldown/binding-linux-x64-gnu",
   },
   "linux-arm64": {
     lightningcss: "lightningcss-linux-arm64-gnu",
     oxide: "@tailwindcss/oxide-linux-arm64-gnu",
+    rolldown: "@rolldown/binding-linux-arm64-gnu",
   },
 };
 
@@ -40,7 +45,7 @@ function readPackageVersion(packageName) {
   return JSON.parse(readFileSync(packageJsonPath, "utf8")).version;
 }
 
-function hasPlatformPackage(packageName) {
+function hasNativeBinary(packageName) {
   const packageDir = join(root, "node_modules", ...packageName.split("/"));
 
   if (!existsSync(packageDir)) {
@@ -50,36 +55,46 @@ function hasPlatformPackage(packageName) {
   return readdirSync(packageDir).some((fileName) => fileName.endsWith(".node"));
 }
 
+function maybeAdd(packagesToInstall, packageName, version) {
+  if (version && !hasNativeBinary(packageName)) {
+    packagesToInstall.push(`${packageName}@${version}`);
+  }
+}
+
 const platformKey = `${platform()}-${arch()}`;
 const platformPackages = PLATFORM_PACKAGES[platformKey];
 
 if (!platformPackages) {
   console.warn(
-    `[ensure-native-css] Unsupported platform "${platformKey}", skipping native binary install.`,
+    `[ensure-native-binaries] Unsupported platform "${platformKey}", skipping.`,
   );
   process.exit(0);
 }
 
 const packagesToInstall = [];
 
-const lightningcssVersion = readPackageVersion("lightningcss");
-if (lightningcssVersion && !hasPlatformPackage(platformPackages.lightningcss)) {
-  packagesToInstall.push(
-    `${platformPackages.lightningcss}@${lightningcssVersion}`,
-  );
-}
-
-const oxideVersion = readPackageVersion("@tailwindcss/oxide");
-if (oxideVersion && !hasPlatformPackage(platformPackages.oxide)) {
-  packagesToInstall.push(`${platformPackages.oxide}@${oxideVersion}`);
-}
+maybeAdd(
+  packagesToInstall,
+  platformPackages.lightningcss,
+  readPackageVersion("lightningcss"),
+);
+maybeAdd(
+  packagesToInstall,
+  platformPackages.oxide,
+  readPackageVersion("@tailwindcss/oxide"),
+);
+maybeAdd(
+  packagesToInstall,
+  platformPackages.rolldown,
+  readPackageVersion("rolldown"),
+);
 
 if (packagesToInstall.length === 0) {
   process.exit(0);
 }
 
 console.log(
-  `[ensure-native-css] Installing native CSS binaries for ${platformKey}...`,
+  `[ensure-native-binaries] Installing native binaries for ${platformKey}: ${packagesToInstall.join(", ")}`,
 );
 
 execSync(

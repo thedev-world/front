@@ -3,7 +3,7 @@ FROM node:20-bookworm AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-COPY scripts/ensure-native-css.mjs ./scripts/ensure-native-css.mjs
+COPY scripts/ensure-native-binaries.mjs ./scripts/ensure-native-binaries.mjs
 RUN npm ci
 
 COPY . .
