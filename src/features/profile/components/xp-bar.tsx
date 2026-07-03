@@ -35,9 +35,9 @@ export function XpBar({ progress }: Props) {
           style={{
             ...fillStyle,
             background:
-              "linear-gradient(90deg, oklch(0.5 0.18 260) 0%, oklch(0.62 0.19 260) 60%, oklch(0.7 0.2 270) 100%)",
+              "linear-gradient(90deg, oklch(0.52 0.20 282) 0%, oklch(0.72 0.19 288) 60%, oklch(0.78 0.15 292) 100%)",
             boxShadow:
-              "0 0 12px oklch(0.62 0.19 260 / 0.45), inset 0 0 6px oklch(1 0 0 / 0.2)",
+              "0 0 12px oklch(0.72 0.19 288 / 0.45), inset 0 0 6px oklch(1 0 0 / 0.2)",
           }}
         />
         <div

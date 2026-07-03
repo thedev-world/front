@@ -1,7 +1,6 @@
 "use client";
 
-import { Users } from "lucide-react";
-
+import { HudTopDock } from "@/components/ui/hud-panel";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 import { formatFullNumber } from "@/features/profile/lib/format";
 import { usePlanetConfig } from "../api/use-planet-config";
@@ -38,65 +37,37 @@ function PlanetDeveloperGoalBar({
   percent,
 }: BarProps) {
   const countDisplay = useCountUp(developerCount, { duration: 1600, delay: 200 });
-  const percentDisplay = useCountUp(percent, { duration: 1600, delay: 200 });
 
   const fillStyle = {
     "--xp-target": `${percent}%`,
   } as React.CSSProperties;
 
   return (
-    <div
-      className="w-[min(92vw,22rem)] border border-white/20 bg-black/40 px-4 py-2.5 shadow-2xl backdrop-blur-md sm:w-80"
+    <HudTopDock
       role="progressbar"
       aria-valuenow={developerCount}
       aria-valuemin={0}
       aria-valuemax={developerGoal}
       aria-label={`Road to ${developerGoal} developers`}
     >
-      <div className="mb-2 flex items-center gap-2">
-        <Users size={11} className="shrink-0 text-cyan-400/90" aria-hidden="true" />
-        <span className="flex-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-300">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
           Road to {formatFullNumber(developerGoal)} developers
         </span>
-        <span className="ticker ticker-tabular text-[10px] font-medium text-hi">
-          {percentDisplay.toFixed(0)}%
-        </span>
-      </div>
-
-      <div className="relative h-2 w-full overflow-hidden border border-white/10 bg-white/[0.03]">
-        <div
-          className="absolute inset-y-0 left-0 anim-xp-fill"
-          style={{
-            ...fillStyle,
-            background:
-              "linear-gradient(90deg, oklch(0.48 0.16 200) 0%, oklch(0.58 0.18 195) 55%, oklch(0.68 0.19 185) 100%)",
-            boxShadow:
-              "0 0 14px oklch(0.58 0.18 195 / 0.5), inset 0 0 6px oklch(1 0 0 / 0.18)",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, transparent 0 24px, oklch(0 0 0 / 0.22) 24px 25px)",
-          }}
-        />
-      </div>
-
-      <div className="mt-1.5 flex items-baseline justify-between text-[10px]">
-        <span className="ticker ticker-tabular text-zinc-400">
-          <span className="font-medium text-zinc-200">
+        <span className="ticker ticker-tabular shrink-0 text-[10px]">
+          <span className="font-semibold text-hi">
             {formatFullNumber(Math.round(countDisplay))}
           </span>
-          <span className="text-zinc-400">
-            {" "}/ {formatFullNumber(developerGoal)}
-          </span>
-        </span>
-        <span className="ticker uppercase tracking-[0.16em] text-zinc-400">
-          on the islands
+          <span className="text-zinc-500"> / {formatFullNumber(developerGoal)}</span>
         </span>
       </div>
-    </div>
+
+      <div className="relative h-1.5 w-full overflow-hidden border border-white/[0.08] bg-white/[0.03]">
+        <div
+          className="absolute inset-y-0 left-0 anim-xp-fill bg-hi-gradient shadow-hi-glow"
+          style={fillStyle}
+        />
+      </div>
+    </HudTopDock>
   );
 }

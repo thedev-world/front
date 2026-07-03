@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, Trophy } from "lucide-react"
+import { ChevronDown, Hexagon, Trophy } from "lucide-react"
 import { useState } from "react"
 
 import {
@@ -9,6 +9,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { HudRightDock } from "@/components/ui/hud-panel"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { usePlanetLeaderboard } from "../hooks/use-planet-leaderboard"
 import type { LeaderboardEntry } from "../hooks/use-planet-leaderboard"
@@ -30,18 +32,14 @@ function LeaderboardRow({
   showIsland?: boolean
   onClick?: () => void
 }) {
-  return (
-    <div
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
-      className={cn(
-        "flex items-center gap-1.5 rounded px-1.5 py-1 transition-colors",
-        entry.isMe && "bg-white/[0.06] ring-1 ring-inset ring-white/15",
-        onClick && "cursor-pointer hover:bg-white/[0.04]",
-      )}
-    >
+  const className = cn(
+    "flex w-full items-center gap-1.5 border-0 bg-transparent px-1.5 py-1 text-left font-inherit transition-colors",
+    entry.isMe && "bg-white/[0.06] ring-1 ring-inset ring-white/15",
+    onClick && "cursor-pointer hover:bg-white/[0.04]",
+  )
+
+  const content = (
+    <>
       <span
         className={cn(
           "shrink-0 text-[10px] tabular-nums",
@@ -66,11 +64,22 @@ function LeaderboardRow({
         </span>
       )}
 
-      <span className="shrink-0 text-[10px] tabular-nums text-zinc-600">
+      <div className="flex shrink-0 items-center gap-0.5 text-[10px] tabular-nums text-hi/60">
         {entry.cellCount}
-      </span>
-    </div>
+        <Hexagon size={10} />
+      </div>
+    </>
   )
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {content}
+      </button>
+    )
+  }
+
+  return <div className={className}>{content}</div>
 }
 
 export function PlanetLeaderboard() {
@@ -89,11 +98,10 @@ export function PlanetLeaderboard() {
   }
 
   return (
-    <div className="absolute right-4 top-4 z-40 w-52 border border-white/20 bg-black/40 shadow-2xl backdrop-blur-md">
-      {/* Header */}
+    <HudRightDock>
       <button
         onClick={() => setCollapsed((v) => !v)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        className="flex w-full items-center gap-2 px-3 text-left h-10 cursor-pointer"
       >
         <Trophy size={12} className="shrink-0 text-amber-400" />
         <span className="flex-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-300">
@@ -108,15 +116,13 @@ export function PlanetLeaderboard() {
         />
       </button>
 
-      {/* Content */}
       {!collapsed && (
-        <div className="border-t border-white/[0.06]">
+        <ScrollArea className="max-h-[min(60vh,28rem)] border-t border-white/[0.06]">
           <Accordion
             defaultValue={["top-10"]}
             className="flex flex-col"
             onValueChange={handleAccordionChange}
           >
-            {/* Top 10 all islands — open by default */}
             <AccordionItem value="top-10" className="border-b border-white/[0.06]">
               <AccordionTrigger className="px-3 py-1.5 hover:no-underline">
                 <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-500">
@@ -184,8 +190,8 @@ export function PlanetLeaderboard() {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
+        </ScrollArea>
       )}
-    </div>
+    </HudRightDock>
   )
 }

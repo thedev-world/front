@@ -260,8 +260,8 @@ export function LevelReveal({
           )}
           style={
             isComplete
-              ? { textShadow: "0 0 60px oklch(0.62 0.19 260 / 0.25)" }
-              : { textShadow: "0 0 48px oklch(0.62 0.19 260 / 0.4)" }
+              ? { textShadow: "0 0 60px oklch(0.72 0.19 288 / 0.25)" }
+              : { textShadow: "0 0 48px oklch(0.72 0.19 288 / 0.4)" }
           }
         >
           {displayClass.name}
@@ -293,7 +293,7 @@ export function LevelReveal({
                 strokeWidth={1}
                 size={14}
                 className="text-hi"
-                style={{ filter: "drop-shadow(0 0 6px oklch(0.62 0.19 260 / 0.6))" }}
+                style={{ filter: "drop-shadow(0 0 6px oklch(0.72 0.19 288 / 0.6))" }}
               />
               <span className="ticker ticker-tabular text-xs font-medium text-hi">
                 {formatFullNumber(Math.round(animatedCells))}
@@ -339,9 +339,9 @@ export function LevelReveal({
             style={{
               width: `${barFillPercent}%`,
               background:
-                "linear-gradient(90deg, oklch(0.5 0.18 260) 0%, oklch(0.62 0.19 260) 60%, oklch(0.7 0.2 270) 100%)",
+                "linear-gradient(90deg, oklch(0.52 0.20 282) 0%, oklch(0.72 0.19 288) 60%, oklch(0.78 0.15 292) 100%)",
               boxShadow:
-                "0 0 12px oklch(0.62 0.19 260 / 0.45), inset 0 0 6px oklch(1 0 0 / 0.2)",
+                "0 0 12px oklch(0.72 0.19 288 / 0.45), inset 0 0 6px oklch(1 0 0 / 0.2)",
             }}
           />
           <div
@@ -418,7 +418,7 @@ export function LevelReveal({
                     aria-hidden
                     className="shrink-0 text-hi/70"
                     style={{
-                      filter: "drop-shadow(0 0 4px oklch(0.62 0.19 260 / 0.55))",
+                      filter: "drop-shadow(0 0 4px oklch(0.72 0.19 288 / 0.55))",
                     }}
                   />
                   <span className="ticker-tabular font-medium text-hi">{diffSummary.levelAfter}</span>
@@ -438,7 +438,7 @@ export function LevelReveal({
                     strokeWidth={1}
                     size={11}
                     className="text-hi"
-                    style={{ filter: "drop-shadow(0 0 4px oklch(0.62 0.19 260 / 0.5))" }}
+                    style={{ filter: "drop-shadow(0 0 4px oklch(0.72 0.19 288 / 0.5))" }}
                   />
                   <span className="ticker-tabular font-medium text-hi">
                     +{diffSummary.cellAfter - diffSummary.cellBefore}
@@ -459,10 +459,7 @@ export function LevelReveal({
           isComplete ? "opacity-100 anim-reveal-up" : "pointer-events-none opacity-0",
         )}
       >
-        <Button
-          onClick={onDone ?? (() => router.push("/profile"))}
-          className="h-10 px-8 text-sm tracking-wide"
-        >
+        <Button variant="primary" size="lg" onClick={onDone ?? (() => router.push("/profile"))}>
           {ctaLabel}
         </Button>
       </div>

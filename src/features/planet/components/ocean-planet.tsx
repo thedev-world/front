@@ -76,7 +76,6 @@ const FRESNEL_FRAG = `
   varying vec3 vViewDir;
 
   void main() {
-    // Tight, subtle rim glow (higher power = thinner halo at the limb).
     float fresnel = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewDir))), 4.3);
     gl_FragColor = vec4(uColor, fresnel * uStrength);
   }

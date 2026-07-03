@@ -1,15 +1,18 @@
-import { AuthHeader } from "@/features/auth/components/auth-header"
-import { PlanetDeveloperGoal } from "@/features/planet/components/planet-developer-goal"
-import { PlanetHome } from "@/features/planet/components/planet-home"
+import { AuthHeader } from "@/features/auth/components/auth-header";
+import { PlanetDeveloperGoal } from "@/features/planet/components/planet-developer-goal";
+import { PlanetCanvasWrapper } from "@/features/planet/components/planet-canvas-wrapper";
+import { HudFrame } from "@/components/ui/hud-frame";
+import { NetworkDock } from "@/features/network-dock/components/network-dock";
+import { PlanetLeaderboard } from "@/features/planet/components/planet-leaderboard";
 
 export default function HomePage() {
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-zinc-950">
+    <HudFrame>
+      <PlanetDeveloperGoal />
       <AuthHeader />
-      <div className="pointer-events-none absolute left-1/2 top-4 z-40 -translate-x-1/2">
-        <PlanetDeveloperGoal />
-      </div>
-      <PlanetHome />
-    </div>
-  )
+      <PlanetLeaderboard />
+      <PlanetCanvasWrapper />
+      <NetworkDock />
+    </HudFrame>
+  );
 }

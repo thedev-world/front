@@ -54,7 +54,7 @@ export function StatTile({
             emphasis
               ? {
                   textShadow:
-                    "0 0 18px oklch(0.62 0.19 260 / 0.25), 0 0 50px oklch(0.5 0.18 260 / 0.12)",
+                    "0 0 18px oklch(0.72 0.19 288 / 0.25), 0 0 50px oklch(0.52 0.20 282 / 0.12)",
                 }
               : undefined
           }

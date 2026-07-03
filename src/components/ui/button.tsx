@@ -1,57 +1,147 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva } from "class-variance-authority"
 
+import { HudReadoutShell } from "@/components/ui/hud-panel"
 import { cn } from "@/lib/utils"
 
-const buttonVariants = cva(
-  "group/button cursor-pointer inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-  {
-    variants: {
-      variant: {
-        default:
-          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_oklch(1_0_0_/_0.08)] hover:bg-primary/85 active:shadow-none",
-        outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
-        ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
-        destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-3 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5",
-        icon: "size-8",
-        "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-7",
-        "icon-lg": "size-9",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-)
+const buttonControlBase =
+  "group/button hud-readout-button-control relative overflow-hidden cursor-pointer inline-flex shrink-0 items-center justify-center rounded-sm border-0 font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:ring-2 focus-visible:ring-hi/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
 
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
-  return (
-    <ButtonPrimitive
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
+const buttonSizeClasses = {
+  primary: {
+    sm: "btn-hud-primary gap-2 px-4 py-2 text-[13px]",
+    md: "btn-hud-primary gap-2.5 px-5 py-2.5 text-sm",
+    lg: "btn-hud-primary gap-2.5 px-6 py-3 text-sm tracking-wide",
+  },
+  secondary: {
+    sm: "btn-hud-secondary gap-1.5 px-3 py-1.5 text-xs",
+    md: "btn-hud-secondary gap-2 px-4 py-2 text-[13px]",
+    lg: "btn-hud-secondary gap-2 px-5 py-2.5 text-sm",
+  },
+  destructive: {
+    sm: "btn-hud-destructive gap-1.5 px-3 py-1.5 text-xs",
+    md: "btn-hud-destructive gap-2 px-4 py-2 text-[13px]",
+    lg: "btn-hud-destructive gap-2 px-5 py-2.5 text-sm",
+  },
+  toggle: {
+    sm: "gap-1.5 px-3 py-1.5 text-xs",
+    md: "gap-2 px-4 py-2 text-[13px]",
+    lg: "gap-2 px-5 py-2.5 text-sm",
+  },
+} as const
+
+const shellVariants = cva("hud-readout-button inline-flex", {
+  variants: {
+    shell: {
+      primary: "hud-readout-button--primary",
+      secondary: "hud-readout-button--secondary",
+      "toggle-selected": "hud-readout-button--toggle-selected",
+    },
+  },
+  defaultVariants: {
+    shell: "primary",
+  },
+})
+
+type ButtonVariant = keyof typeof buttonSizeClasses
+type ButtonSize = keyof typeof buttonSizeClasses.primary
+
+type ButtonProps = ButtonPrimitive.Props & {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  /** Selection state — only for `variant="toggle"`. */
+  selected?: boolean
+  /** Muted label — `secondary` and unselected `toggle`. */
+  muted?: boolean
+  shellClassName?: string
+}
+
+function resolveShell(
+  variant: ButtonVariant,
+  selected: boolean,
+): "primary" | "secondary" | "toggle-selected" {
+  if (variant === "toggle") {
+    return selected ? "toggle-selected" : "secondary"
+  }
+  if (variant === "destructive") return "secondary"
+  return variant
+}
+
+function resolveControlClasses(
+  variant: ButtonVariant,
+  size: ButtonSize,
+  selected: boolean,
+  muted: boolean,
+) {
+  if (variant === "toggle") {
+    return cn(
+      buttonSizeClasses.toggle[size],
+      selected ? "btn-hud-toggle-selected" : "btn-hud-secondary",
+      !selected && muted && "text-muted-foreground",
+    )
+  }
+
+  return cn(
+    buttonSizeClasses[variant][size],
+    muted && variant === "secondary" && "text-muted-foreground",
   )
 }
 
+function Button({
+  variant = "primary",
+  size = "md",
+  selected = false,
+  muted = false,
+  shellClassName,
+  className,
+  children,
+  ...props
+}: ButtonProps) {
+  const shell = resolveShell(variant, selected)
+
+  return (
+    <HudReadoutShell
+      className={cn(shellVariants({ shell }), shellClassName)}
+    >
+      <ButtonPrimitive
+        data-slot="button"
+        aria-pressed={variant === "toggle" ? selected : undefined}
+        className={cn(
+          buttonControlBase,
+          resolveControlClasses(variant, size, selected, muted),
+          className,
+        )}
+        {...props}
+      >
+        {variant === "primary" && (
+          <span aria-hidden className="btn-hud-sweep" />
+        )}
+        {children}
+      </ButtonPrimitive>
+    </HudReadoutShell>
+  )
+}
+
+/** @deprecated Use Button props directly — kept for shadcn-style consumers. */
+const buttonVariants = cva(buttonControlBase, {
+  variants: {
+    variant: {
+      primary: "btn-hud-primary",
+      secondary: "btn-hud-secondary",
+      destructive: "btn-hud-destructive",
+      toggle: "btn-hud-secondary",
+    },
+    size: {
+      sm: "",
+      md: "",
+      lg: "",
+    },
+  },
+  defaultVariants: {
+    variant: "primary",
+    size: "md",
+  },
+})
+
 export { Button, buttonVariants }
+export type { ButtonProps, ButtonVariant, ButtonSize }

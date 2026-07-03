@@ -137,8 +137,8 @@ export function RankProgression({ profile }: Props) {
                       style={{
                         width: `${p * 100}%`,
                         background:
-                          "linear-gradient(90deg, oklch(0.5 0.18 260) 0%, oklch(0.62 0.19 260) 100%)",
-                        boxShadow: "0 0 10px oklch(0.62 0.19 260 / 0.4)",
+                          "linear-gradient(90deg, oklch(0.52 0.20 282) 0%, oklch(0.72 0.19 288) 100%)",
+                        boxShadow: "0 0 10px oklch(0.72 0.19 288 / 0.4)",
                       }}
                     />
                   </div>

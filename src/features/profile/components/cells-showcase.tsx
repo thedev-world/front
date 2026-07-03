@@ -63,7 +63,7 @@ export function CellsShowcase({ profile }: Props) {
           aria-hidden
           className="pointer-events-none absolute -left-20 -top-20 size-64 rounded-full opacity-30"
           style={{
-            background: "radial-gradient(circle, oklch(0.62 0.19 260 / 0.25) 0%, transparent 70%)",
+            background: "radial-gradient(circle, oklch(0.72 0.19 288 / 0.25) 0%, transparent 70%)",
             filter: "blur(24px)",
           }}
         />
@@ -124,7 +124,7 @@ export function CellsShowcase({ profile }: Props) {
                   style={{
                     width: "clamp(7rem, 14vw, 9rem)",
                     height: "clamp(7rem, 14vw, 9rem)",
-                    filter: "drop-shadow(0 0 18px oklch(0.62 0.19 260 / 0.35))",
+                    filter: "drop-shadow(0 0 18px oklch(0.72 0.19 288 / 0.35))",
                   }}
                 />
                 <div className="absolute flex flex-col items-center gap-0.5">

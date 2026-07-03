@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { BadgeGlow } from "@/components/ui/badge-glow";
 import { useMe } from "@/features/auth/api/use-me";
 import { useIslands } from "../api/use-islands";
@@ -22,6 +22,7 @@ const LEAVE_MS = 280;
 function useSequentialReveal(target: string | null) {
   const [shown, setShown] = useState<string | null>(null);
   const [leaving, setLeaving] = useState<string | null>(null);
+  const [animateEnter, setAnimateEnter] = useState(false);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevTargetRef = useRef<string | null>(null);
 
@@ -34,6 +35,9 @@ function useSequentialReveal(target: string | null) {
       if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
       setLeaving(prev);
       leaveTimerRef.current = setTimeout(() => setLeaving(null), LEAVE_MS);
+      setAnimateEnter(true);
+    } else {
+      setAnimateEnter(false);
     }
 
     setShown(target);
@@ -45,7 +49,7 @@ function useSequentialReveal(target: string | null) {
     };
   }, []);
 
-  return { shown, leaving };
+  return { shown, leaving, animateEnter };
 }
 
 type Props = {
@@ -88,7 +92,7 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
   const readyIsland =
     displayIsland && loadedSlugs.has(displayIsland) ? displayIsland : null;
 
-  const { shown, leaving } = useSequentialReveal(readyIsland);
+  const { shown, leaving, animateEnter } = useSequentialReveal(readyIsland);
 
   useEffect(() => {
     return () => {
@@ -117,7 +121,7 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
             Where do you ship?
           </h2>
           <p className="text-sm text-muted-foreground">
-            Pick your primary domain. You can always change it later.
+            Pick your primary development domain
           </p>
         </div>
 
@@ -131,23 +135,25 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
             ))}
           </div>
         ) : (
-          <div className="flex max-w-2xl flex-wrap justify-center gap-2">
-            {islands.map((island) => (
-              <button
-                key={island.value}
-                onClick={() => handleSelect(island.value)}
-                onMouseEnter={() => handleMouseEnter(island.value)}
-                onMouseLeave={handleMouseLeave}
-                className={cn(
-                  "border px-4 py-1.5 text-sm font-medium transition-all duration-150",
-                  selected === island.value
-                    ? "border-hi bg-hi/10 text-foreground"
-                    : "border-white/[0.12] text-muted-foreground hover:border-white/30 hover:text-foreground",
-                )}
-              >
-                {island.label}
-              </button>
-            ))}
+          <div className="flex max-w-2xl flex-wrap justify-center gap-2.5">
+            {islands.map((island) => {
+              const isSelected = selected === island.value;
+
+              return (
+                <Button
+                  key={island.value}
+                  variant="toggle"
+                  size="sm"
+                  selected={isSelected}
+                  muted={!isSelected}
+                  onClick={() => handleSelect(island.value)}
+                  onMouseEnter={() => handleMouseEnter(island.value)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {island.label}
+                </Button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -194,7 +200,10 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
           {shown && (
             <div
               key={shown}
-              className="absolute inset-0 island-picker-enter"
+              className={cn(
+                "absolute inset-0",
+                animateEnter && "island-picker-enter",
+              )}
             >
               <BadgeGlow
                 src={getIslandImagePath(shown)!}
@@ -211,17 +220,15 @@ export function StepIslandPicker({ onConfirm, isConfirming = false }: Props) {
         </div>
 
         {/* Continue button — bottom-right */}
-        <button
+        <Button
+          variant="primary"
+          size="lg"
           disabled={!selected || isConfirming}
           onClick={() => selected && onConfirm(selected)}
-          className={cn(
-            buttonVariants({ variant: "default" }),
-            "absolute right-8 bottom-8 h-9 px-5 text-sm transition-opacity",
-            (!selected || isConfirming) && "opacity-40",
-          )}
+          shellClassName="absolute bottom-8 right-8 z-10"
         >
           {isConfirming ? "Loading…" : "Continue"}
-        </button>
+        </Button>
       </div>
     </div>
   );

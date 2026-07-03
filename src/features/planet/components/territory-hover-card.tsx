@@ -16,7 +16,7 @@ export function TerritoryHoverCard() {
 
   return (
     <div
-      className="pointer-events-none fixed z-50 rounded-lg border border-white/10 bg-zinc-900/90 px-3 py-2 shadow-xl backdrop-blur-sm"
+      className="pointer-events-none fixed z-50 rounded-lg border border-white/10 bg-zinc-950/95 px-3 py-2 shadow-xl"
       style={{
         left: mousePos.x + 14,
         top: mousePos.y + 14,

@@ -68,7 +68,7 @@ export function OnboardingFlow() {
         className="pointer-events-none absolute inset-x-0 top-0 h-px"
         style={{
           background:
-            "linear-gradient(90deg, transparent, oklch(0.62 0.19 260 / 0.3), transparent)",
+            "linear-gradient(90deg, transparent, oklch(0.72 0.19 288 / 0.3), transparent)",
         }}
       />
 

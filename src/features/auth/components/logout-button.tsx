@@ -13,7 +13,7 @@ export function LogoutButton({ className }: Props) {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="destructive"
       disabled={logoutMutation.isPending}
       onClick={() => void logoutMutation.mutate()}
       className={className}

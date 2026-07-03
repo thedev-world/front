@@ -59,7 +59,7 @@ export function ProfileHero({ profile }: Props) {
                   className="text-[clamp(2.5rem,6vw,3.5rem)] font-semibold leading-none ticker-tabular text-hi"
                   style={{
                     textShadow:
-                      "0 0 24px oklch(0.62 0.19 260 / 0.3), 0 0 60px oklch(0.5 0.18 260 / 0.15)",
+                      "0 0 24px oklch(0.72 0.19 288 / 0.3), 0 0 60px oklch(0.52 0.20 282 / 0.15)",
                   }}
                 >
                   {profile.xp_progress.level}

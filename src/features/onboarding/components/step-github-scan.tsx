@@ -79,7 +79,7 @@ function ScanStatCell({
             ? undefined
             : {
                 textShadow:
-                  "0 0 16px oklch(0.62 0.19 260 / 0.4), 0 0 40px oklch(0.5 0.18 260 / 0.18)",
+                  "0 0 16px oklch(0.72 0.19 288 / 0.4), 0 0 40px oklch(0.52 0.20 282 / 0.18)",
               }
         }
       >
@@ -142,7 +142,7 @@ export function StepGithubScan({ onComplete }: Props) {
         className="flex items-center gap-2.5 transition-opacity duration-700"
         style={{ opacity: allDone ? 1 : 0 }}
       >
-        <span className="size-1.5 rounded-full bg-hi shadow-[0_0_8px_oklch(0.62_0.19_260_/_0.7)]" />
+        <span className="size-1.5 rounded-full bg-hi shadow-[0_0_8px_oklch(0.72_0.19_288_/_0.7)]" />
         <span className="ticker text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
           Computing your rank
         </span>

@@ -10,6 +10,11 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-hi: var(--hi);
+  --color-hud-outer-bg: var(--hud-outer-bg);
+  --background-image-hi-gradient: var(--hi-gradient);
+  --shadow-hi-glow:
+    0 0 12px oklch(0.72 0.19 288 / 0.45),
+    inset 0 0 6px oklch(1 0 0 / 0.2);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -84,38 +89,124 @@
 }
 
 .dark {
-  --background: oklch(0.08 0.008 285);
+  --background: oklch(0.07 0.045 275);
+  --hud-outer-bg: oklch(0.04 0.025 265);
+  --hud-c:      16px;   /* corner chamfer size   */
+  --hud-nh:     10px;   /* top notch depth       */
+  --hud-lnh:    12px;   /* left notch depth      */
+  --hud-border:  oklch(0.82 0.08 282 / 0.9);
+  --hud-border-gradient: linear-gradient(
+    155deg,
+    oklch(0.92 0.03 290) 0%,
+    oklch(0.80 0.10 275) 42%,
+    oklch(0.86 0.06 285) 100%
+  );
+  --hud-ui-border-gradient: linear-gradient(
+    155deg,
+    oklch(0.85 0.06 288 / 0.75) 0%,
+    oklch(0.70 0.11 275 / 0.55) 50%,
+    oklch(0.78 0.08 292 / 0.65) 100%
+  );
+  --hud-panel-fill: linear-gradient(
+    165deg,
+    oklch(0.13 0.07 288 / 0.96) 0%,
+    oklch(0.09 0.05 278 / 0.96) 52%,
+    oklch(0.06 0.04 270 / 0.98) 100%
+  );
+  --hud-ui-c: 6px;   /* light chamfer for floating readout panels */
+  --hud-notch-start: 38%;
+  --hud-notch-end: 62%;
+  --hud-readout-clip: polygon(
+    0% var(--hud-ui-c),
+    var(--hud-ui-c) 0%,
+    calc(100% - var(--hud-ui-c)) 0%,
+    100% var(--hud-ui-c),
+    100% calc(100% - var(--hud-ui-c)),
+    calc(100% - var(--hud-ui-c)) 100%,
+    var(--hud-ui-c) 100%,
+    0% calc(100% - var(--hud-ui-c))
+  );
+  /* Avatar slot — flush left, chamfered top-right + bottom-right */
+  --hud-avatar-clip: polygon(
+    0% 0%,
+    calc(100% - var(--hud-ui-c)) 0%,
+    100% var(--hud-ui-c),
+    100% calc(100% - var(--hud-ui-c)),
+    calc(100% - var(--hud-ui-c)) 100%,
+    0% 100%
+  );
+  --hud-dock-clip: polygon(
+    0% 0%,
+    100% 0%,
+    100% calc(100% - var(--hud-c)),
+    calc(100% - var(--hud-c)) 100%,
+    var(--hud-c) 100%,
+    0% calc(100% - var(--hud-c))
+  );
+  /* Open bottom + left (frame merge); chamfer top-right + bottom-right only */
+  --hud-dock-bl-clip: polygon(
+    0% 0%,
+    calc(100% - var(--hud-c)) 0%,
+    100% var(--hud-c),
+    100% calc(100% - var(--hud-c)),
+    calc(100% - var(--hud-c)) 100%,
+    0% 100%
+  );
+  --hud-clip: polygon(
+    var(--hud-c) 0%,
+    36% 0%,
+    38% var(--hud-nh),
+    62% var(--hud-nh),
+    64% 0%,
+    calc(100% - var(--hud-c)) 0%,
+    100% var(--hud-c),
+    100% calc(100% - var(--hud-c)),
+    calc(100% - var(--hud-c)) 100%,
+    calc(var(--hud-c) + var(--hud-lnh)) 100%,
+    var(--hud-lnh) calc(100% - var(--hud-c)),
+    var(--hud-lnh) 26%,
+    0% 23%,
+    0% var(--hud-c)
+  );
   --foreground: oklch(0.985 0 0);
-  --hi: oklch(0.62 0.19 260);
-  --card: oklch(0.205 0 0);
+  --hi: oklch(0.72 0.19 288);
+  --hi-muted: oklch(0.52 0.20 282);
+  --hi-bright: oklch(0.78 0.15 292);
+  --hi-gradient: linear-gradient(
+    90deg,
+    oklch(0.52 0.20 282) 0%,
+    oklch(0.68 0.19 288) 60%,
+    oklch(0.78 0.15 292) 100%
+  );
+  --card: oklch(0.1 0.012 285 / 0.7);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.09 0.015 285);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --primary: oklch(0.57 0.23 284);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.16 0.01 285);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --muted: oklch(0.14 0.008 285);
+  --muted-foreground: oklch(0.62 0 0);
+  --accent: oklch(0.72 0.19 288 / 0.12);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --destructive: oklch(0.64 0.22 22);
+  --border: oklch(0.72 0.19 288 / 0.14);
+  --input: oklch(1 0 0 / 0.08);
+  --ring: oklch(0.57 0.23 284 / 0.5);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
+  --sidebar: oklch(0.1 0.012 285);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.57 0.23 284);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: oklch(0.72 0.19 288 / 0.12);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-border: oklch(0.72 0.19 288 / 0.14);
+  --sidebar-ring: oklch(0.57 0.23 284 / 0.5);
 }
 
 @layer base {
@@ -131,16 +222,281 @@
 }
 
 @layer utilities {
-  .text-hi {
-    color: var(--hi);
+  /* HUD panel — solid fill, no backdrop-filter (keeps WebGL canvas performant) */
+  .glass-panel {
+    background: var(--hud-panel-fill);
+    border: 1px solid oklch(0.72 0.10 282 / 0.35);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.05);
   }
 
-  .bg-hi {
-    background-color: var(--hi);
+  /* ── HUD Frame — cockpit panel ─────────────────────────
+     Border via double clip-path layer (.hud-border + .hud-inner) — no filters. */
+
+  .hud-shell {
+    flex: 1;
+    height: 100%;
   }
 
-  .border-hi {
-    border-color: var(--hi);
+  .hud-border {
+    clip-path: var(--hud-clip);
+    background: var(--hud-border-gradient);
+    padding: 1px;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hud-inner {
+    clip-path: var(--hud-clip);
+    background: radial-gradient(
+      ellipse 120% 100% at 50% 60%,
+      oklch(0.09 0.055 275) 0%,
+      oklch(0.06 0.07  280) 45%,
+      oklch(0.04 0.09  285) 100%
+    );
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* HUD top dock — chamfered panel merged into the frame notch */
+  .hud-top-dock {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 40;
+    width: min(22rem, max(24%, 18rem), 92vw);
+    transform: translateX(-50%);
+  }
+
+  .hud-top-dock-border {
+    clip-path: var(--hud-dock-clip);
+    background: var(--hud-border-gradient);
+    margin-top: var(--hud-nh);
+    padding: 0 1px 1px;
+  }
+
+  .hud-top-dock-inner {
+    clip-path: var(--hud-dock-clip);
+    background: var(--hud-panel-fill);
+    padding: 0.5rem 1rem 0.625rem;
+    box-shadow: inset 0 -1px 0 oklch(1 0 0 / 0.05);
+  }
+
+  /* HUD bottom-left dock — merged into frame corner, open bottom + left */
+  .hud-bottom-left-dock {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+  }
+
+  .hud-bottom-left-dock-border {
+    clip-path: var(--hud-dock-bl-clip);
+    background: var(--hud-border-gradient);
+    padding: 1px 1px 0 0;
+  }
+
+  .hud-bottom-left-dock-inner {
+    clip-path: var(--hud-dock-bl-clip);
+    background: var(--hud-panel-fill);
+    box-shadow: inset 1px 0 0 oklch(1 0 0 / 0.04);
+  }
+
+  /* HUD readout — floating panel with light chamfered corners */
+  .hud-readout-panel-border {
+    clip-path: var(--hud-readout-clip);
+    background: var(--hud-ui-border-gradient);
+    padding: 1px;
+    box-shadow: 0 4px 20px oklch(0 0 0 / 0.22);
+  }
+
+  .hud-readout-panel-inner {
+    clip-path: var(--hud-readout-clip);
+    background: var(--hud-panel-fill);
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.05);
+  }
+
+  .hud-readout-button .hud-readout-panel-border {
+    box-shadow: 0 2px 14px oklch(0 0 0 / 0.18);
+  }
+
+  .hud-readout-button--primary .hud-readout-panel-inner:has([data-slot="button"]) {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .hud-readout-button-control {
+    width: 100%;
+    border-radius: 0;
+    border: 0;
+  }
+
+  /* User menu avatar — HUD border on chamfered right corners */
+  .user-menu-avatar-border {
+    clip-path: var(--hud-avatar-clip);
+    background: var(--hud-ui-border-gradient);
+    padding: 1px;
+    height: 100%;
+  }
+
+  .user-menu-avatar-inner {
+    clip-path: var(--hud-avatar-clip);
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* HUD button tones */
+  .btn-hud-primary {
+    background: linear-gradient(
+      165deg,
+      oklch(0.28 0.20 286) 0%,
+      oklch(0.20 0.18 284) 48%,
+      oklch(0.14 0.14 278) 100%
+    );
+    color: oklch(0.985 0 0);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08);
+  }
+
+  .btn-hud-primary:hover {
+    background: linear-gradient(
+      165deg,
+      oklch(0.32 0.21 286) 0%,
+      oklch(0.23 0.19 284) 48%,
+      oklch(0.17 0.15 278) 100%
+    );
+  }
+
+  .btn-hud-primary:active {
+    background: linear-gradient(
+      165deg,
+      oklch(0.24 0.19 286) 0%,
+      oklch(0.17 0.17 284) 48%,
+      oklch(0.12 0.13 278) 100%
+    );
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+  }
+
+  .btn-hud-secondary {
+    background: transparent;
+    color: oklch(0.88 0 0);
+    box-shadow: none;
+  }
+
+  .btn-hud-secondary:hover {
+    background: oklch(1 0 0 / 0.05);
+    color: oklch(0.985 0 0);
+  }
+
+  .btn-hud-secondary:active {
+    background: oklch(1 0 0 / 0.03);
+  }
+
+  .btn-hud-destructive {
+    background: transparent;
+    color: oklch(0.704 0.191 22.216);
+    box-shadow: none;
+  }
+
+  .btn-hud-destructive:hover {
+    background: oklch(0.704 0.191 22.216 / 0.12);
+    color: oklch(0.808 0.114 19.571);
+  }
+
+  .btn-hud-destructive:active {
+    background: oklch(0.704 0.191 22.216 / 0.08);
+  }
+
+  /* Toggle pills — selected: primary/hi palette (same family as // ticker + CTA) */
+  .btn-hud-toggle-selected {
+    background: linear-gradient(
+      165deg,
+      oklch(0.30 0.21 286) 0%,
+      oklch(0.22 0.19 284) 48%,
+      oklch(0.16 0.15 282) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px oklch(0.57 0.23 284 / 0.55),
+      inset 0 1px 0 oklch(1 0 0 / 0.08),
+      0 0 16px oklch(0.57 0.23 284 / 0.32);
+    text-shadow:
+      0 0 10px oklch(0.72 0.19 288 / 0.55),
+      0 0 22px oklch(0.57 0.23 284 / 0.25);
+  }
+
+  .btn-hud-toggle-selected:hover,
+  .btn-hud-toggle-selected:active {
+    background: linear-gradient(
+      165deg,
+      oklch(0.30 0.21 286) 0%,
+      oklch(0.22 0.19 284) 48%,
+      oklch(0.16 0.15 282) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px oklch(0.57 0.23 284 / 0.55),
+      inset 0 1px 0 oklch(1 0 0 / 0.08),
+      0 0 16px oklch(0.57 0.23 284 / 0.32);
+    text-shadow:
+      0 0 10px oklch(0.72 0.19 288 / 0.55),
+      0 0 22px oklch(0.57 0.23 284 / 0.25);
+  }
+
+  .hud-readout-button--toggle-selected .hud-readout-panel-border {
+    background: var(--hud-ui-border-gradient);
+    box-shadow:
+      0 2px 14px oklch(0 0 0 / 0.22),
+      0 0 20px oklch(0.57 0.23 284 / 0.38),
+      0 0 40px oklch(0.72 0.19 288 / 0.1);
+  }
+
+  .hud-readout-button--toggle-selected .hud-readout-panel-inner:has([data-slot="button"]) {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .hud-readout-button--primary .hud-readout-panel-border {
+    box-shadow:
+      0 2px 14px oklch(0 0 0 / 0.18),
+      0 0 20px oklch(0.72 0.19 288 / 0.22);
+  }
+
+  .hud-right-dock {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 40;
+    width: 13rem;
+  }
+
+  /* HUD Button — diagonal scan sweep
+     Default state is opacity:0 so the snap-back on hover-exit is invisible. */
+  @keyframes hud-scan {
+    0%   { transform: translateX(-140%) skewX(-10deg); opacity: 0; }
+    8%   { opacity: 1; }
+    100% { transform: translateX(340%) skewX(-10deg); opacity: 0; }
+  }
+
+  .btn-hud-sweep {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 45%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(1 0 0 / 0.11) 50%,
+      transparent 100%
+    );
+    transform: translateX(-140%) skewX(-10deg);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  [data-slot="button"]:not(:disabled):hover .btn-hud-sweep {
+    animation: hud-scan 0.55s cubic-bezier(0.35, 0, 0.15, 1) forwards;
   }
 
   .hex-grid-corner {
@@ -154,11 +510,6 @@
     );
   }
 
-  .grain-overlay {
-    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    background-size: 200px 200px;
-  }
-
   .ticker {
     font-family: var(--font-mono);
     font-feature-settings: "tnum", "zero";
@@ -169,6 +520,7 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum", "zero", "ss01";
   }
+
 
   @keyframes reveal-up {
     from {
@@ -187,17 +539,6 @@
     }
     to {
       opacity: 1;
-    }
-  }
-
-  @keyframes island-rise-in {
-    from {
-      opacity: 0;
-      transform: translateY(36px) scale(0.92);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
     }
   }
 
@@ -238,18 +579,6 @@
     50% { transform: scale(1.06); }
   }
 
-  @keyframes drift-slow {
-    0% {
-      transform: translate3d(0, 0, 0);
-    }
-    50% {
-      transform: translate3d(-1.5%, 1%, 0);
-    }
-    100% {
-      transform: translate3d(0, 0, 0);
-    }
-  }
-
   @keyframes xp-fill {
     from {
       width: 0%;
@@ -265,20 +594,6 @@
 
   .anim-reveal-in {
     animation: reveal-in 1s ease-out both;
-  }
-
-  .anim-island-rise {
-    animation: island-rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  @keyframes class-flash {
-    0%   { opacity: 0; transform: scale(0.85) translateY(8px); }
-    40%  { opacity: 1; transform: scale(1.06) translateY(0); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
-  }
-
-  .anim-class-flash {
-    animation: class-flash 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   /* === Rank unlock celebration === */
@@ -336,23 +651,23 @@
     background: conic-gradient(
       from 0deg,
       transparent 0deg 14deg,
-      oklch(0.65 0.2 260 / 0.22) 14deg 23deg,
+      oklch(0.68 0.19 286 / 0.22) 14deg 23deg,
       transparent 23deg 58deg,
       oklch(0.62 0.18 255 / 0.13) 58deg 65deg,
       transparent 65deg 98deg,
-      oklch(0.65 0.2 260 / 0.19) 98deg 108deg,
+      oklch(0.68 0.19 286 / 0.19) 98deg 108deg,
       transparent 108deg 145deg,
       oklch(0.62 0.18 255 / 0.11) 145deg 152deg,
       transparent 152deg 183deg,
-      oklch(0.65 0.2 260 / 0.17) 183deg 192deg,
+      oklch(0.68 0.19 286 / 0.17) 183deg 192deg,
       transparent 192deg 228deg,
       oklch(0.62 0.18 255 / 0.13) 228deg 236deg,
       transparent 236deg 265deg,
-      oklch(0.65 0.2 260 / 0.21) 265deg 275deg,
+      oklch(0.68 0.19 286 / 0.21) 265deg 275deg,
       transparent 275deg 308deg,
       oklch(0.62 0.18 255 / 0.1) 308deg 315deg,
       transparent 315deg 344deg,
-      oklch(0.65 0.2 260 / 0.16) 344deg 352deg,
+      oklch(0.68 0.19 286 / 0.16) 344deg 352deg,
       transparent 352deg 360deg
     );
     mask-image: radial-gradient(circle at center, transparent 12%, white 28%, white 58%, transparent 80%);
@@ -396,7 +711,7 @@
     height: 4px;
     border-radius: 50%;
     background: oklch(0.85 0.17 266);
-    box-shadow: 0 0 8px 2px oklch(0.65 0.2 260 / 0.9), 0 0 16px 4px oklch(0.62 0.19 260 / 0.4);
+    box-shadow: 0 0 8px 2px oklch(0.68 0.19 286 / 0.9), 0 0 16px 4px oklch(0.72 0.19 288 / 0.4);
     transform: translate(-50%, -50%) translateX(128px);
     animation: rank-dot-appear 0.4s ease-out 0.35s both;
   }
@@ -405,12 +720,8 @@
     width: 2.5px;
     height: 2.5px;
     background: oklch(0.78 0.12 265);
-    box-shadow: 0 0 6px 1.5px oklch(0.62 0.16 260 / 0.7);
+    box-shadow: 0 0 6px 1.5px oklch(0.72 0.16 288 / 0.7);
     transform: translate(-50%, -50%) translateX(158px);
-  }
-
-  .anim-drift {
-    animation: drift-slow 18s ease-in-out infinite;
   }
 
   .anim-xp-fill {
@@ -482,14 +793,14 @@
   .rank-rail-scroll::-webkit-scrollbar-thumb {
     background: linear-gradient(
       90deg,
-      oklch(0.5 0.18 260 / 0.5),
-      oklch(0.62 0.19 260 / 0.55)
+      oklch(0.52 0.20 282 / 0.5),
+      oklch(0.72 0.19 288 / 0.55)
     );
     border-radius: 9999px;
   }
 
   .rank-rail-scroll::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.62 0.19 260 / 0.7);
+    background: oklch(0.72 0.19 288 / 0.7);
   }
 
   .rank-badge-locked {

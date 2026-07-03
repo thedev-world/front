@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
+import { HudReadoutShell } from "@/components/ui/hud-panel"
 import { cn } from "@/lib/utils"
 import { usePlanetStore } from "../stores/planet-store"
 import { useMyPlanetStats } from "../hooks/use-my-planet-stats"
@@ -95,9 +96,7 @@ function OnboardingStatsOverlay({
       <div
         ref={cardRef}
         className={cn(
-          "pointer-events-none absolute bottom-12 right-12 z-40 w-52",
-          "border border-white/20 bg-black/40 shadow-2xl backdrop-blur-md",
-          "px-3 py-3 transition-all",
+          "pointer-events-none absolute bottom-28 right-10 z-40 w-52 transition-all",
         )}
         style={{
           transitionDuration: `${FADE_DURATION_MS}ms`,
@@ -105,31 +104,33 @@ function OnboardingStatsOverlay({
           transform: cardVisible ? "translateX(0)" : "translateX(8px)",
         }}
       >
-        <div className="flex flex-col gap-2.5">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-zinc-500">
-            Your territory
-          </p>
+        <HudReadoutShell innerClassName="px-3 py-3">
+          <div className="flex flex-col gap-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+              Your territory
+            </p>
 
-          <div className="flex flex-col gap-0.5">
-            <span className="text-5xl font-bold leading-none tracking-tight text-white">
-              #{stats.globalRank}
-            </span>
-            <span className="text-[12px] text-zinc-400">
-              largest territory in the dev world
-            </span>
+            <div className="flex flex-col gap-0.5">
+              <span className="ticker ticker-tabular text-5xl font-bold leading-none tracking-tight text-hi">
+                #{stats.globalRank}
+              </span>
+              <span className="text-[11px] text-zinc-400">
+                largest territory in the dev world
+              </span>
+            </div>
+
+            <div className="h-px w-full bg-white/[0.06]" />
+
+            <p className="text-[11px] leading-relaxed text-zinc-500">
+              <span className="text-zinc-300">{ordinalSuffix(stats.islandRank)}</span>
+              {" on "}
+              <span className="text-zinc-300">{capitalizedIsland} Island</span>
+              {"  -  "}
+              <span className="font-medium text-hi/90">{stats.cellCount}</span>
+              {" cells claimed"}
+            </p>
           </div>
-
-          <div className="h-px w-full bg-white/10" />
-
-          <p className="text-[11px] leading-relaxed text-zinc-500">
-            <span className="text-zinc-300">{ordinalSuffix(stats.islandRank)}</span>
-            {" on "}
-            <span className="text-zinc-300">{capitalizedIsland} Island</span>
-            {"  -  "}
-            <span className="text-zinc-300">{stats.cellCount}</span>
-            {" cells claimed"}
-          </p>
-        </div>
+        </HudReadoutShell>
       </div>
     </>
   )
@@ -201,7 +202,6 @@ function TerritoryConnector({
     <svg
       className="pointer-events-none absolute inset-0 z-30 h-full w-full"
       style={{
-        filter: "drop-shadow(0 0 4px rgba(255,255,255,0.3))",
         opacity: show ? 1 : 0,
         transition: `opacity ${FADE_DURATION_MS}ms`,
       }}
@@ -211,7 +211,7 @@ function TerritoryConnector({
         fill="none"
         stroke="white"
         strokeWidth="1"
-        strokeOpacity="0.4"
+        strokeOpacity="0.55"
         pathLength="1"
         strokeDasharray="1"
         strokeDashoffset={drawn ? "0" : "1"}

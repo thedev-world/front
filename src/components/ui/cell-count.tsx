@@ -28,7 +28,7 @@ export function CellCount({ count, size = 8, delay = 0, enabled = true }: Props)
         style={{
           width: remSize,
           height: remSize,
-          filter: "drop-shadow(0 0 20px oklch(0.62 0.19 260 / 0.4))",
+          filter: "drop-shadow(0 0 20px oklch(0.72 0.19 288 / 0.4))",
         }}
       />
       <div className="absolute flex flex-col items-center gap-0.5">

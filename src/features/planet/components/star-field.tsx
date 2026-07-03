@@ -30,12 +30,28 @@ export function StarField() {
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
       positions[i * 3 + 2] = r * Math.cos(phi)
 
-      sizes[i] = 0.3 + rand() * 0.8
+      sizes[i] = 0.35 + rand() * 1.1
 
-      const warmth = rand()
-      colors[i * 3] = 0.85 + warmth * 0.15
-      colors[i * 3 + 1] = 0.88 + warmth * 0.12
-      colors[i * 3 + 2] = 0.95 + (1 - warmth) * 0.05
+      // Blue-violet palette: cool blue-white, violet, deep indigo accents
+      const t = rand()
+      if (t < 0.55) {
+        // Cool blue-white
+        const b = rand()
+        colors[i * 3]     = 0.62 + b * 0.22  // R
+        colors[i * 3 + 1] = 0.68 + b * 0.20  // G
+        colors[i * 3 + 2] = 0.95 + b * 0.05  // B
+      } else if (t < 0.82) {
+        // Violet / indigo
+        const v = rand()
+        colors[i * 3]     = 0.60 + v * 0.28  // R
+        colors[i * 3 + 1] = 0.45 + v * 0.20  // G
+        colors[i * 3 + 2] = 0.90 + v * 0.10  // B
+      } else {
+        // Bright near-white with blue tint
+        colors[i * 3]     = 0.88
+        colors[i * 3 + 1] = 0.90
+        colors[i * 3 + 2] = 1.00
+      }
     }
 
     const geo = new THREE.BufferGeometry()
@@ -57,10 +73,10 @@ export function StarField() {
     <points ref={ref} geometry={geometry} frustumCulled={false}>
       <pointsMaterial
         vertexColors
-        size={0.15}
+        size={0.18}
         sizeAttenuation
         transparent
-        opacity={0.9}
+        opacity={0.95}
         depthWrite={false}
       />
     </points>

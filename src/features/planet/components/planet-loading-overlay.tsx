@@ -48,7 +48,7 @@ export function PlanetLoadingOverlay({ isLoading }: Props) {
       <div className="anim-reveal-in flex flex-col items-center gap-4">
         <div className="relative h-9 w-9" aria-hidden="true">
           <span className="absolute inset-0 rounded-full border border-white/[0.08]" />
-          <span className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-cyan-400/70 [animation-duration:1.4s]" />
+          <span className="absolute inset-0 animate-spin rounded-full border border-transparent border-t-hi/40 [animation-duration:1.4s]" />
           <span className="absolute inset-[11px] rounded-full bg-hi/70 shadow-[0_0_12px_var(--hi)]" />
         </div>
         <p className="ticker text-xs uppercase tracking-[0.28em] text-zinc-500">

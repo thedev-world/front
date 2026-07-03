@@ -7,7 +7,6 @@ import { GitHubSignInButton } from "@/features/auth/components/github-sign-in-bu
 import { usePlanetData } from "../api/use-planet-data";
 import { usePlanetStore } from "../stores/planet-store";
 import { OnboardingStats } from "./onboarding-stats";
-import { PlanetLeaderboard } from "./planet-leaderboard";
 import { PlanetLoadingOverlay } from "./planet-loading-overlay";
 
 const PlanetCanvas = dynamic(
@@ -18,7 +17,7 @@ const PlanetCanvas = dynamic(
   { ssr: false },
 );
 
-export function PlanetHome() {
+export function PlanetCanvasWrapper() {
   const { isPending } = usePlanetData();
   const { data: me, isLoading: meLoading } = useMe();
   const introPhase = usePlanetStore((s) => s.introPhase);
@@ -34,9 +33,6 @@ export function PlanetHome() {
       <div className="h-full w-full">
         <PlanetCanvas />
       </div>
-
-      <PlanetLeaderboard />
-
       <OnboardingStats />
 
       {/* Cinematic intro overlay for non-authenticated visitors */}
@@ -46,17 +42,12 @@ export function PlanetHome() {
           style={{ opacity: showOverlay ? 1 : 0 }}
         >
           <div className="pointer-events-auto">
-            <GitHubSignInButton>Claim our developer territory</GitHubSignInButton>
+            <GitHubSignInButton variant="primary">
+              Claim our developer territory
+            </GitHubSignInButton>
           </div>
         </div>
       )}
-
-      <div className="absolute bottom-4 left-4 z-40">
-        <h1 className="text-lg font-semibold tracking-tight text-white/80">
-          The dev world
-        </h1>
-        <p className="text-sm text-zinc-500">A world built by developers</p>
-      </div>
     </div>
   );
 }
