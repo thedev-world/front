@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Tag or SHA to deploy manually (e.g. v1.2.3 or v1.2.3-sha-abc1234)"
+        description: "Tag to deploy manually (e.g. v1.2.3)"
         required: true
 
 env:
@@ -25,11 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get short SHA and tag info
+      - name: Get tag info
         id: meta
-        run: |
-          echo "short_sha=$(echo ${{ github.sha }} | head -c7)" >> $GITHUB_OUTPUT
-          echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        run: echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
       - name: Log in to Scaleway registry
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
@@ -40,15 +38,10 @@ jobs:
             --build-arg BACKEND_URL=http://api:8000 \
             --build-arg NEXT_PUBLIC_API_URL= \
             -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }} \
-            -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}-sha-${{ steps.meta.outputs.short_sha }} \
-            -t ${{ env.IMAGE }}:latest \
             .
 
       - name: Push image tags
-        run: |
-          docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}
-          docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}-sha-${{ steps.meta.outputs.short_sha }}
-          docker push ${{ env.IMAGE }}:latest
+        run: docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}
 
   # ---------------------------------------------------------------------------
   # Deploy - Deploys to prod after build (release) or manually (dispatch)
@@ -68,7 +61,7 @@ jobs:
         id: meta
         run: |
           if [ "${{ github.event_name }}" = "release" ]; then
-            echo "tag=${{ github.event.release.tag_name }}-sha-$(echo ${{ github.sha }} | head -c7)" >> $GITHUB_OUTPUT
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
           else
             echo "tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
           fi
