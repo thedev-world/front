@@ -14,7 +14,7 @@ export type Island = {
 }
 
 export type Territory = {
-  login: string
+  githubLogin: string
   islandId: IslandId
   cellCount: number
   cells: HexCell[]

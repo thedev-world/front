@@ -37,7 +37,7 @@ export function PlanetScene() {
 
   const {
     setPausedAt,
-    setHighlightedLogin,
+    setHighlightedGithubLogin,
     setSkipReveal,
     setIntroPhase,
     setPlanetInteracted,
@@ -45,12 +45,12 @@ export function PlanetScene() {
 
   // Reactive selectors for leaderboard focus
   const focusIslandId = usePlanetStore((s) => s.focusIslandId)
-  const focusLogin = usePlanetStore((s) => s.focusLogin)
+  const focusGithubLogin = usePlanetStore((s) => s.focusGithubLogin)
 
   // Always highlight the logged-in user's territory
   useEffect(() => {
-    if (me?.github_login) setHighlightedLogin(me.github_login)
-  }, [me?.github_login, setHighlightedLogin])
+    if (me?.github_login) setHighlightedGithubLogin(me.github_login)
+  }, [me?.github_login, setHighlightedGithubLogin])
 
   // Camera focus triggered by leaderboard island accordion
   useEffect(() => {
@@ -61,12 +61,12 @@ export function PlanetScene() {
 
   // Camera focus triggered by leaderboard row click (navigate to user's island)
   useEffect(() => {
-    if (!focusLogin || !enrichedSnapshot) return
-    const territory = enrichedSnapshot.territories.find((t) => t.login === focusLogin)
+    if (!focusGithubLogin || !enrichedSnapshot) return
+    const territory = enrichedSnapshot.territories.find((t) => t.githubLogin === focusGithubLogin)
     if (!territory) return
     const island = enrichedSnapshot.islands.find((i) => i.id === territory.islandId)
     if (island) cameraTargetIslandRef.current = { island, keepDistance: true, fixedRadius: null }
-  }, [focusLogin, enrichedSnapshot])
+  }, [focusGithubLogin, enrichedSnapshot])
 
   // Intro animation for non-authenticated visitors
   const introStartedRef = useRef(false)
@@ -180,8 +180,8 @@ export function PlanetScene() {
     }
 
     // Post-intro idle orbit for guests: continue orbiting camera in same direction
-    const { focusIslandId, focusLogin } = usePlanetStore.getState()
-    if (focusIslandId || focusLogin) userInteractedRef.current = true
+    const { focusIslandId, focusGithubLogin } = usePlanetStore.getState()
+    if (focusIslandId || focusGithubLogin) userInteractedRef.current = true
 
     if (
       introPhase === "done" &&
@@ -273,7 +273,7 @@ export function PlanetScene() {
       {enrichedSnapshot && me?.island && (
         <TerritoryPositionTracker
           island={enrichedSnapshot.islands.find((i) => i.id === me.island)}
-          territory={enrichedSnapshot.territories.find((t) => t.login === me.github_login)}
+          territory={enrichedSnapshot.territories.find((t) => t.githubLogin === me.github_login)}
           cellSize={enrichedSnapshot.cellSize}
           planetRadius={enrichedSnapshot.planetRadius}
         />

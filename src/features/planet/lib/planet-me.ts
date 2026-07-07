@@ -8,9 +8,9 @@ import type { PlanetApiResponse, PlanetSnapshot } from "../types/snapshot"
  */
 export function findMyTerritoryIndex(
   snapshot: PlanetSnapshot,
-  login: string,
+  githubLogin: string,
 ): number | null {
-  const idx = snapshot.territories.findIndex((t) => t.login === login)
+  const idx = snapshot.territories.findIndex((t) => t.githubLogin === githubLogin)
   return idx === -1 ? null : idx
 }
 
@@ -30,10 +30,10 @@ export function buildSnapshotWithMe(
   snapshot: PlanetSnapshot,
   me: MeProfile,
 ): PlanetSnapshot {
-  const { github_login: login, island: islandId, cell_count: cellCount } = me
+  const { github_login: githubLogin, island: islandId, cell_count: cellCount } = me
 
   if (!islandId || cellCount <= 0) return snapshot
-  if (snapshot.territories.some((t) => t.login === login)) return snapshot
+  if (snapshot.territories.some((t) => t.githubLogin === githubLogin)) return snapshot
 
   // Rebuild islands map from the snapshot's territory list
   const islandsMap: Record<string, [string, number][]> = {}
@@ -44,14 +44,14 @@ export function buildSnapshotWithMe(
     if (!islandsMap[territory.islandId]) {
       islandsMap[territory.islandId] = []
     }
-    islandsMap[territory.islandId].push([territory.login, territory.cellCount])
+    islandsMap[territory.islandId].push([territory.githubLogin, territory.cellCount])
   }
 
   // Make sure the user's island exists, then append the user at the end
   if (!islandsMap[islandId]) {
     islandsMap[islandId] = []
   }
-  islandsMap[islandId].push([login, cellCount])
+  islandsMap[islandId].push([githubLogin, cellCount])
 
   const apiResponse: PlanetApiResponse = {
     updated_at: snapshot.version,

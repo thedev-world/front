@@ -25,7 +25,7 @@ export type PlanetLeaderboard = {
 function rankEntries(
   territories: Territory[],
   islands: Island[],
-  myLogin: string | undefined,
+  myGithubLogin: string | undefined,
   limit: number,
 ): LeaderboardEntry[] {
   return territories
@@ -36,7 +36,7 @@ function rankEntries(
       ...t,
       rank: i + 1,
       island: islands.find((island) => island.id === t.islandId),
-      isMe: !!myLogin && t.login === myLogin,
+      isMe: !!myGithubLogin && t.githubLogin === myGithubLogin,
     }))
 }
 
@@ -48,20 +48,20 @@ export function usePlanetLeaderboard(): PlanetLeaderboard | null {
     if (!snapshot) return null
 
     const { territories, islands } = snapshot
-    const myLogin = me?.github_login
+    const myGithubLogin = me?.github_login
 
-    const allRanked = rankEntries(territories, islands, myLogin, territories.length)
+    const allRanked = rankEntries(territories, islands, myGithubLogin, territories.length)
     const topAll = allRanked.slice(0, 10)
-    const myGlobalRank = myLogin
+    const myGlobalRank = myGithubLogin
       ? (allRanked.find((e) => e.isMe && e.rank > 10) ?? null)
       : null
 
     const byIsland: IslandLeaderboard[] = islands
       .map((island) => {
         const islandTerritories = territories.filter((t) => t.islandId === island.id)
-        const allRankedIsland = rankEntries(islandTerritories, islands, myLogin, islandTerritories.length)
+        const allRankedIsland = rankEntries(islandTerritories, islands, myGithubLogin, islandTerritories.length)
         const topEntries = allRankedIsland.slice(0, 5)
-        const myIslandRank = myLogin
+        const myIslandRank = myGithubLogin
           ? (allRankedIsland.find((e) => e.isMe && e.rank > 5) ?? null)
           : null
         return {

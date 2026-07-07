@@ -20,10 +20,10 @@ export function useMyPlanetStats(): MyPlanetStats | null {
     if (!snapshot || !me?.github_login) return null
 
     const { territories, islands } = snapshot
-    const myLogin = me.github_login
+    const myGithubLogin = me.github_login
 
     const allSorted = territories.slice().sort((a, b) => b.cellCount - a.cellCount)
-    const globalIndex = allSorted.findIndex((t) => t.login === myLogin)
+    const globalIndex = allSorted.findIndex((t) => t.githubLogin === myGithubLogin)
     if (globalIndex === -1) return null
 
     const myTerritory = allSorted[globalIndex]
@@ -32,7 +32,7 @@ export function useMyPlanetStats(): MyPlanetStats | null {
       .filter((t) => t.islandId === myTerritory.islandId)
       .sort((a, b) => b.cellCount - a.cellCount)
 
-    const islandIndex = islandTerritories.findIndex((t) => t.login === myLogin)
+    const islandIndex = islandTerritories.findIndex((t) => t.githubLogin === myGithubLogin)
     const myIsland = islands.find((i) => i.id === myTerritory.islandId)
 
     return {

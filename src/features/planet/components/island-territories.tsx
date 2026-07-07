@@ -18,14 +18,14 @@ export function IslandTerritories({ snapshot }: Props) {
     setHoveredTerritory,
     setMousePos,
     hoveredTerritoryIndex,
-    highlightedLogin,
+    highlightedGithubLogin,
     fromOnboarding,
     setFromOnboarding,
     setPausedAt,
     setSkipReveal,
     setShowOnboardingStats,
-    focusLogin,
-    setFocusLogin,
+    focusGithubLogin,
+    setFocusGithubLogin,
   } = usePlanetStore()
 
   const meshData = useMemo(() => buildTerritoryMesh(snapshot), [snapshot])
@@ -120,10 +120,10 @@ export function IslandTerritories({ snapshot }: Props) {
 
   // Permanent "me" highlight (golden)
   const myTerritoryIndex = useMemo(() => {
-    if (!highlightedLogin) return null
-    const idx = snapshot.territories.findIndex((t) => t.login === highlightedLogin)
+    if (!highlightedGithubLogin) return null
+    const idx = snapshot.territories.findIndex((t) => t.githubLogin === highlightedGithubLogin)
     return idx === -1 ? null : idx
-  }, [highlightedLogin, snapshot])
+  }, [highlightedGithubLogin, snapshot])
 
   // Solo island: one dev owns the whole island, label sits at the anchor — skip fill glow
   const isSoloIslandHighlight = useMemo(() => {
@@ -211,10 +211,10 @@ export function IslandTerritories({ snapshot }: Props) {
 
   // Leaderboard "focus" highlight
   const focusedTerritoryIndex = useMemo(() => {
-    if (!focusLogin) return null
-    const idx = snapshot.territories.findIndex((t) => t.login === focusLogin)
+    if (!focusGithubLogin) return null
+    const idx = snapshot.territories.findIndex((t) => t.githubLogin === focusGithubLogin)
     return idx === -1 ? null : idx
-  }, [focusLogin, snapshot])
+  }, [focusGithubLogin, snapshot])
 
   const focusHighlightMeshRef = useRef<THREE.Mesh>(null)
   const focusBorderRef = useRef<THREE.LineSegments>(null)
@@ -432,10 +432,10 @@ export function IslandTerritories({ snapshot }: Props) {
       }
       setMousePos({ x: e.clientX, y: e.clientY })
       // Clear leaderboard focus when user interacts directly with the planet
-      if (usePlanetStore.getState().focusLogin) setFocusLogin(null)
+      if (usePlanetStore.getState().focusGithubLogin) setFocusGithubLogin(null)
       setHoveredTerritory(meshData.faceToTerritory[e.faceIndex])
     },
-    [meshData.faceToTerritory, setFocusLogin, setHoveredTerritory, setMousePos],
+    [meshData.faceToTerritory, setFocusGithubLogin, setHoveredTerritory, setMousePos],
   )
 
   const handlePointerOut = useCallback(() => {

@@ -14,9 +14,9 @@ import { useCountUp } from "@/features/profile/lib/use-count-up";
 import { createXpMath } from "../lib/xp-math";
 import { useRankRevealSequence } from "../lib/use-rank-reveal-sequence";
 import { useXpConfig } from "../api/use-xp-config";
-import { usePlayerClasses } from "../api/use-player-classes";
-import type { SyncDiffSummary } from "@/features/auth/types/sync";
-import { preloadBadgeImage } from "@/features/profile/lib/player-class";
+import { usePlayerClasses } from "@/features/developer/api/use-player-classes";
+import type { SyncDiffSummary } from "@/features/onboarding/types/sync-diff";
+import { preloadBadgeImage } from "@/features/developer/lib/player-class";
 
 
 export function LevelReveal({

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { PlayerClassMeta } from "@/features/profile/lib/player-class";
-import { PLAYER_CLASS_FALLBACK } from "@/features/profile/lib/player-class";
+import type { PlayerClassMeta } from "@/features/developer/lib/player-class";
+import { PLAYER_CLASS_FALLBACK } from "@/features/developer/lib/player-class";
 import {
   type RevealSegment,
   type XpMath,
