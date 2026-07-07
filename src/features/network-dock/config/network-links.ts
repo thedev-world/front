@@ -10,7 +10,7 @@ const DEFAULT_LINKS: NetworkLink[] = [
   {
     id: "github",
     label: "GitHub",
-    href: process.env.NEXT_PUBLIC_NETWORK_GITHUB_URL ?? "https://github.com",
+    href: process.env.NEXT_PUBLIC_NETWORK_GITHUB_URL ?? "",
   },
   {
     id: "discord",
