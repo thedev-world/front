@@ -180,7 +180,15 @@ export function PlanetScene() {
     }
 
     // Post-intro idle orbit for guests: continue orbiting camera in same direction
-    if (introPhase === "done" && !me && !userInteractedRef.current) {
+    const { focusIslandId, focusLogin } = usePlanetStore.getState()
+    if (focusIslandId || focusLogin) userInteractedRef.current = true
+
+    if (
+      introPhase === "done" &&
+      !me &&
+      !userInteractedRef.current &&
+      !cameraTargetIslandRef.current
+    ) {
       const postElapsed = clock.getElapsedTime() - postIntroStartTimeRef.current
       const speed = Math.min(postElapsed / 0.3, 1) * 0.0008
       postIntroThetaRef.current += speed
