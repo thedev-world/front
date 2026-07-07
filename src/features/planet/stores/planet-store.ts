@@ -13,13 +13,13 @@ type PlanetStore = {
   fromOnboarding: boolean
   /** Elapsed time (seconds) at which the planet rotation was frozen. Null = rotating freely. */
   pausedAt: number | null
-  /** Login of the authenticated user — their territory is always highlighted. */
-  highlightedLogin: string | null
+  /** GitHub login of the authenticated user — their territory is always highlighted. */
+  highlightedGithubLogin: string | null
   /** When true, the reveal animation should skip to completion immediately. */
   skipReveal: boolean
   setFromOnboarding: (v: boolean) => void
   setPausedAt: (v: number | null) => void
-  setHighlightedLogin: (v: string | null) => void
+  setHighlightedGithubLogin: (v: string | null) => void
   setSkipReveal: (v: boolean) => void
   /** Cinematic intro phase for non-authenticated visitors. */
   introPhase: IntroPhase
@@ -30,9 +30,9 @@ type PlanetStore = {
   /** Island to focus on (leaderboard accordion open) — triggers camera lerp. */
   focusIslandId: string | null
   setFocusIslandId: (v: string | null) => void
-  /** Login to focus on (leaderboard row click) — triggers camera lerp + highlight. */
-  focusLogin: string | null
-  setFocusLogin: (v: string | null) => void
+  /** GitHub login to focus on (leaderboard row click) — triggers camera lerp + highlight. */
+  focusGithubLogin: string | null
+  setFocusGithubLogin: (v: string | null) => void
   /** Screen coordinates (px) of the authenticated user's territory center. */
   myTerritoryScreenPos: MousePos | null
   setMyTerritoryScreenPos: (pos: MousePos | null) => void
@@ -48,11 +48,11 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setMousePos: (mousePos) => set({ mousePos }),
   fromOnboarding: false,
   pausedAt: null,
-  highlightedLogin: null,
+  highlightedGithubLogin: null,
   skipReveal: false,
   setFromOnboarding: (fromOnboarding) => set({ fromOnboarding }),
   setPausedAt: (pausedAt) => set({ pausedAt }),
-  setHighlightedLogin: (highlightedLogin) => set({ highlightedLogin }),
+  setHighlightedGithubLogin: (highlightedGithubLogin) => set({ highlightedGithubLogin }),
   setSkipReveal: (skipReveal) => set({ skipReveal }),
   showOnboardingStats: false,
   setShowOnboardingStats: (showOnboardingStats) => set({ showOnboardingStats }),
@@ -60,8 +60,8 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setIntroPhase: (introPhase) => set({ introPhase }),
   focusIslandId: null,
   setFocusIslandId: (focusIslandId) => set({ focusIslandId }),
-  focusLogin: null,
-  setFocusLogin: (focusLogin) => set({ focusLogin }),
+  focusGithubLogin: null,
+  setFocusGithubLogin: (focusGithubLogin) => set({ focusGithubLogin }),
   myTerritoryScreenPos: null,
   setMyTerritoryScreenPos: (myTerritoryScreenPos) => set({ myTerritoryScreenPos }),
   planetInteracted: false,

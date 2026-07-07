@@ -6,7 +6,7 @@ import {
   BADGE_BY_SLUG,
   type PlayerClassMeta,
   type PlayerClassSlug,
-} from "@/features/profile/lib/player-class";
+} from "@/features/developer/lib/player-class";
 
 export const playerClassesQueryKey = ["xp", "classes"] as const;
 

@@ -1,7 +1,7 @@
 import {
   PLAYER_CLASS_FALLBACK,
   type PlayerClassMeta,
-} from "@/features/profile/lib/player-class";
+} from "@/features/developer/lib/player-class";
 
 /**
  * Level thresholds returned by /xp/config.

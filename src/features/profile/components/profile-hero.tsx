@@ -8,7 +8,7 @@ import {
   BADGE_BY_SLUG,
   PLAYER_CLASS_FALLBACK,
   type PlayerClassSlug,
-} from "@/features/profile/lib/player-class";
+} from "@/features/developer/lib/player-class";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 
 type Props = {

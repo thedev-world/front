@@ -11,7 +11,7 @@ import { setUnauthorizedBroadcastHandler } from "@/lib/api-client";
 import { makeQueryClient } from "@/lib/query-client";
 import { useAuthSync } from "@/features/auth/api/use-auth-sync";
 import { SyncRevealProvider } from "@/features/auth/lib/sync-reveal-context";
-import { SyncRevealDialog } from "@/features/auth/components/sync-reveal-dialog";
+import { SyncRevealDialog } from "@/features/onboarding/components/sync-reveal-dialog";
 
 function AuthSyncManager() {
   useAuthSync();

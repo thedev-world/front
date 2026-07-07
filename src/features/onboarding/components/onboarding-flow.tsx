@@ -8,7 +8,7 @@ import { LevelReveal } from "./level-reveal";
 import { useUpdateIsland } from "../api/use-update-island";
 import { useCompleteOnboarding } from "../api/use-complete-onboarding";
 import { usePlanetStore } from "@/features/planet/stores/planet-store";
-import { usePlayerClasses } from "../api/use-player-classes";
+import { usePlayerClasses } from "@/features/developer/api/use-player-classes";
 import { usePreloadImages } from "@/hooks/use-preload-images";
 
 type Step = "island" | "scan" | "reveal";

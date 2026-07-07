@@ -3,9 +3,9 @@
 import { ChevronDown, LogOut, User } from "lucide-react"
 import Link from "next/link"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { BadgeGlow } from "@/components/ui/badge-glow"
 import { HudReadoutShell } from "@/components/ui/hud-panel"
+import { UserAvatar } from "@/components/ui/user-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,20 +15,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useLogout } from "@/features/auth/api/use-logout"
-import { loginInitials } from "@/features/auth/lib/login-initials"
 import type { MeProfile } from "@/features/auth/types/me"
 import {
   BADGE_BY_SLUG,
   PLAYER_CLASS_FALLBACK,
   type PlayerClassSlug,
-} from "@/features/profile/lib/player-class"
-
-const avatarClassName = [
-  "user-menu-avatar-inner h-full w-full rounded-none ring-0",
-  "after:hidden",
-  "[&_[data-slot=avatar-image]]:rounded-none",
-  "[&_[data-slot=avatar-fallback]]:rounded-none",
-].join(" ")
+} from "@/features/developer/lib/player-class"
 
 type Props = {
   user: MeProfile
@@ -47,21 +39,11 @@ export function UserMenu({ user }: Props) {
             "flex h-10 items-stretch overflow-hidden p-0"
           ].join(" ")}
         >
-          <div className="h-full w-10 shrink-0">
-            <div className="user-menu-avatar-border">
-              <Avatar className={avatarClassName}>
-                {user.avatar_url ? (
-                  <AvatarImage
-                    src={user.avatar_url}
-                    alt={`Avatar de ${user.github_login}`}
-                  />
-                ) : null}
-                <AvatarFallback className="text-[11px]">
-                  {loginInitials(user.github_login)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
+          <UserAvatar
+            githubLogin={user.github_login}
+            avatarUrl={user.avatar_url}
+            chamfer={{ topLeft: false, bottomLeft: false }}
+          />
 
           <div className="flex min-w-0 flex-1 items-center gap-2 pl-2.5 pr-3">
             <div className="flex w-[110px] min-w-0 flex-col gap-1">

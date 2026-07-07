@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { useSyncReveal } from "../lib/sync-reveal-context";
+import { useSyncReveal } from "@/features/auth/lib/sync-reveal-context";
 import { LevelReveal } from "@/features/onboarding/components/level-reveal";
 
 export function SyncRevealDialog() {

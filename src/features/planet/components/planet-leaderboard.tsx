@@ -55,7 +55,7 @@ function LeaderboardRow({
           entry.isMe ? "font-semibold text-white" : "text-zinc-400",
         )}
       >
-        @{entry.login}
+        @{entry.githubLogin}
       </span>
 
       {showIsland && entry.island && (
@@ -85,7 +85,7 @@ function LeaderboardRow({
 export function PlanetLeaderboard() {
   const leaderboard = usePlanetLeaderboard()
   const [collapsed, setCollapsed] = useState(true)
-  const { setFocusIslandId, setFocusLogin } = usePlanetStore()
+  const { setFocusIslandId, setFocusGithubLogin } = usePlanetStore()
 
   if (!leaderboard) return null
 
@@ -133,10 +133,10 @@ export function PlanetLeaderboard() {
                 <div className="flex flex-col gap-0.5">
                   {topAll.map((entry) => (
                     <LeaderboardRow
-                      key={entry.login}
+                      key={entry.githubLogin}
                       entry={entry}
                       showIsland={false}
-                      onClick={() => setFocusLogin(entry.login)}
+                      onClick={() => setFocusGithubLogin(entry.githubLogin)}
                     />
                   ))}
                   {myGlobalRank && (
@@ -145,7 +145,7 @@ export function PlanetLeaderboard() {
                       <LeaderboardRow
                         entry={myGlobalRank}
                         showIsland={false}
-                        onClick={() => setFocusLogin(myGlobalRank.login)}
+                        onClick={() => setFocusGithubLogin(myGlobalRank.githubLogin)}
                       />
                     </>
                   )}
@@ -169,10 +169,10 @@ export function PlanetLeaderboard() {
                   <div className="flex flex-col gap-0.5">
                     {entries.map((entry) => (
                       <LeaderboardRow
-                        key={entry.login}
+                        key={entry.githubLogin}
                         entry={entry}
                         showIsland={false}
-                        onClick={() => setFocusLogin(entry.login)}
+                        onClick={() => setFocusGithubLogin(entry.githubLogin)}
                       />
                     ))}
                     {myIslandRank && (
@@ -181,7 +181,7 @@ export function PlanetLeaderboard() {
                         <LeaderboardRow
                           entry={myIslandRank}
                           showIsland={false}
-                          onClick={() => setFocusLogin(myIslandRank.login)}
+                          onClick={() => setFocusGithubLogin(myIslandRank.githubLogin)}
                         />
                       </>
                     )}

@@ -9,8 +9,8 @@ import {
   PLAYER_CLASS_FALLBACK,
   type PlayerClassMeta,
   resolvePlayerClass,
-} from "@/features/profile/lib/player-class";
-import { usePlayerClasses } from "@/features/onboarding/api/use-player-classes";
+} from "@/features/developer/lib/player-class";
+import { usePlayerClasses } from "@/features/developer/api/use-player-classes";
 import { cn } from "@/lib/utils";
 
 type Props = {

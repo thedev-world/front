@@ -92,7 +92,7 @@ function fibonacciSphereAnchors(n: number): [number, number][] {
  * - Stability (a dev's position only depends on devs placed before them)
  */
 function growTerritories(
-  developers: { login: string; cellCount: number }[],
+  developers: { githubLogin: string; cellCount: number }[],
   islandId: string,
 ): { territories: Territory[]; totalCells: number } {
   const occupied = new Set<string>()
@@ -132,7 +132,7 @@ function growTerritories(
     }
 
     territories.push({
-      login: dev.login,
+      githubLogin: dev.githubLogin,
       islandId,
       cellCount: dev.cellCount,
       cells,
@@ -522,7 +522,7 @@ export function buildPlanetSnapshot(
   const islandEntries = Object.entries(apiResponse.islands)
     .map(([id, devList]) => ({
       id,
-      devs: devList.map(([login, cellCount]) => ({ login, cellCount })),
+      devs: devList.map(([githubLogin, cellCount]) => ({ githubLogin, cellCount })),
     }))
     .sort((a, b) => {
       const totalA = a.devs.reduce((s, d) => s + d.cellCount, 0)
