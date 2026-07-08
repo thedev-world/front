@@ -26,6 +26,7 @@ export function IslandTerritories({ snapshot }: Props) {
     setShowOnboardingStats,
     focusGithubLogin,
     setFocusGithubLogin,
+    cameraSettled,
   } = usePlanetStore()
 
   const meshData = useMemo(() => buildTerritoryMesh(snapshot), [snapshot])
@@ -136,14 +137,11 @@ export function IslandTerritories({ snapshot }: Props) {
   const myBorderRef = useRef<THREE.LineSegments>(null)
   const myPulseRef = useRef(0)
 
-  // First authenticated visit: show stats once (no onboarding animation path)
+  // First authenticated visit: show stats once the camera has settled on the island.
   useEffect(() => {
-    if (myTerritoryIndex === null || fromOnboarding) return
-    const delay = setTimeout(() => {
-      setShowOnboardingStats(true)
-    }, 1800)
-    return () => clearTimeout(delay)
-  }, [myTerritoryIndex, fromOnboarding, setShowOnboardingStats])
+    if (myTerritoryIndex === null || fromOnboarding || !cameraSettled) return
+    setShowOnboardingStats(true)
+  }, [myTerritoryIndex, fromOnboarding, cameraSettled, setShowOnboardingStats])
 
   useEffect(() => {
     const mesh = myHighlightMeshRef.current

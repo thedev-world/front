@@ -6,7 +6,7 @@ import { useMe } from "@/features/auth/api/use-me";
 import { GitHubSignInButton } from "@/features/auth/components/github-sign-in-button";
 import { usePlanetData } from "../api/use-planet-data";
 import { usePlanetStore } from "../stores/planet-store";
-import { OnboardingStats } from "./onboarding-stats";
+import { PersonalTerritoryStats } from "./personal-territory-stats";
 import { PlanetLoadingOverlay } from "./planet-loading-overlay";
 
 const PlanetCanvas = dynamic(
@@ -33,7 +33,7 @@ export function PlanetCanvasWrapper() {
       <div className="h-full w-full">
         <PlanetCanvas />
       </div>
-      <OnboardingStats />
+      <PersonalTerritoryStats />
 
       {/* Cinematic intro overlay for non-authenticated visitors */}
       {isGuest && (
