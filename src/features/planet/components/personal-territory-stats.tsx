@@ -19,7 +19,7 @@ function ordinalSuffix(n: number): string {
   return n + (s[(v - 20) % 10] ?? s[v] ?? s[0])
 }
 
-export function OnboardingStats() {
+export function PersonalTerritoryStats() {
   const showOnboardingStats = usePlanetStore((s) => s.showOnboardingStats)
   const setShowOnboardingStats = usePlanetStore((s) => s.setShowOnboardingStats)
   const stats = useMyPlanetStats()
@@ -27,14 +27,14 @@ export function OnboardingStats() {
   if (!showOnboardingStats || !stats) return null
 
   return (
-    <OnboardingStatsOverlay
+    <PersonalTerritoryStatsOverlay
       stats={stats}
       onDismiss={() => setShowOnboardingStats(false)}
     />
   )
 }
 
-function OnboardingStatsOverlay({
+function PersonalTerritoryStatsOverlay({
   stats,
   onDismiss,
 }: {

@@ -41,6 +41,7 @@ export function PlanetScene() {
     setSkipReveal,
     setIntroPhase,
     setPlanetInteracted,
+    setCameraSettled,
   } = usePlanetStore()
 
   // Reactive selectors for leaderboard focus
@@ -214,16 +215,19 @@ export function PlanetScene() {
     const radius = target_ref.keepDistance ? (target_ref.fixedRadius ?? CAM_DIST) : CAM_DIST
     const target = sphericalToWorld(phi, theta, radius)
 
-    cam.position.lerp(target, LERP_FACTOR)
+    // SLERP on direction + lerp on radius so the camera arcs around the planet
+    const currentDir = cam.position.clone().normalize()
+    const targetDir = target.clone().normalize()
+    const currentRadius = cam.position.length()
+    currentDir.lerp(targetDir, LERP_FACTOR).normalize()
+    const lerpedRadius = THREE.MathUtils.lerp(currentRadius, radius, LERP_FACTOR)
+    cam.position.copy(currentDir.multiplyScalar(lerpedRadius))
 
-    // Re-normalize to fixed radius after lerp to prevent distance drift
-    if (target_ref.keepDistance && target_ref.fixedRadius !== null) {
-      cam.position.setLength(target_ref.fixedRadius)
-    }
     cam.lookAt(0, 0, 0)
 
     if (cam.position.distanceTo(target) < 0.08) {
       cameraTargetIslandRef.current = null
+      setCameraSettled(true)
     }
   })
 
