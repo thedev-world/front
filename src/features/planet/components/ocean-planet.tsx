@@ -27,30 +27,24 @@ const OCEAN_FRAG = `
   uniform vec3 uColor;
   uniform vec3 uDeep;
   uniform vec3 uLight;
+  uniform vec3 uKeyLight;
+  uniform vec3 uFillLight;
   varying vec3 vPos;
 
   void main() {
-    // Flat shading via derivatives (built-in in WebGL2, no extension needed)
     vec3 dx = dFdx(vPos);
     vec3 dy = dFdy(vPos);
     vec3 n = normalize(cross(dx, dy));
 
-    // Key light aligned with the scene's main directionalLight ([8,5,4]).
-    vec3 keyLight = normalize(vec3(0.8, 0.5, 0.4));
-    vec3 fillLight = normalize(vec3(-0.5, 0.2, -0.6));
-
-    // Strong key + soft fill + low ambient → clear lit/dark side.
-    float key = max(dot(n, keyLight), 0.0);
-    float fill = max(dot(n, fillLight), 0.0);
+    float key = max(dot(n, uKeyLight), 0.0);
+    float fill = max(dot(n, uFillLight), 0.0);
     float diff = key * 0.9 + fill * 0.18 + 0.16;
 
-    // Vertical depth tint for subtle ocean color variation.
     float depth = dot(normalize(vPos), vec3(0.0, 1.0, 0.0)) * 0.5 + 0.5;
     vec3 col = mix(uDeep, uColor, depth);
 
-    // Glossy specular highlight on the lit top of the sphere.
     vec3 viewDir = normalize(cameraPosition - vPos);
-    vec3 halfDir = normalize(keyLight + viewDir);
+    vec3 halfDir = normalize(uKeyLight + viewDir);
     float spec = pow(max(dot(n, halfDir), 0.0), 22.0) * 0.35;
 
     gl_FragColor = vec4(col * diff + uLight * spec, 1.0);
@@ -81,12 +75,18 @@ const FRESNEL_FRAG = `
   }
 `
 
+const DEFAULT_KEY_LIGHT = new THREE.Vector3(0.8, 0.5, 0.4).normalize()
+const DEFAULT_FILL_LIGHT = new THREE.Vector3(-0.5, 0.2, -0.6).normalize()
+
 type Props = {
   planetRadius?: number
+  /** Optional ref to the ocean ShaderMaterial — lets callers update light uniforms directly. */
+  matRef?: React.RefObject<THREE.ShaderMaterial | null>
 }
 
-export function OceanPlanet({ planetRadius = PLANET_RADIUS }: Props) {
-  const oceanMatRef = useRef<THREE.ShaderMaterial>(null)
+export function OceanPlanet({ planetRadius = PLANET_RADIUS, matRef }: Props) {
+  const internalRef = useRef<THREE.ShaderMaterial>(null)
+  const oceanMatRef = matRef ?? internalRef
 
   const fresnelMat = useMemo(
     () =>
@@ -126,6 +126,8 @@ export function OceanPlanet({ planetRadius = PLANET_RADIUS }: Props) {
             uColor: { value: new THREE.Color("#0ea5e9") },
             uDeep: { value: new THREE.Color("#0c4a6e") },
             uLight: { value: new THREE.Color("#7dd3fc") },
+            uKeyLight: { value: DEFAULT_KEY_LIGHT.clone() },
+            uFillLight: { value: DEFAULT_FILL_LIGHT.clone() },
           }}
         />
       </mesh>
