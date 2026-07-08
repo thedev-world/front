@@ -3,7 +3,7 @@
 import { HudBottomLeftDock } from "@/components/ui/hud-panel";
 import { cn } from "@/lib/utils";
 
-import { getNetworkLinks } from "../config/network-links";
+import { NETWORK_LINKS } from "../config/network-links";
 import { NetworkIcon } from "./network-icons";
 
 const iconClassName = cn(
@@ -14,7 +14,7 @@ const iconClassName = cn(
 );
 
 export function NetworkDock() {
-  const links = getNetworkLinks();
+  const links = NETWORK_LINKS;
 
   return (
     <HudBottomLeftDock innerClassName="px-6 py-3 pr-4">
