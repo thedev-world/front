@@ -6,24 +6,8 @@ export type NetworkLink = {
   href: string;
 };
 
-const DEFAULT_LINKS: NetworkLink[] = [
-  {
-    id: "github",
-    label: "GitHub",
-    href: process.env.NEXT_PUBLIC_NETWORK_GITHUB_URL ?? "",
-  },
-  {
-    id: "discord",
-    label: "Discord",
-    href: process.env.NEXT_PUBLIC_NETWORK_DISCORD_URL ?? "",
-  },
-  {
-    id: "x",
-    label: "X",
-    href: process.env.NEXT_PUBLIC_NETWORK_X_URL ?? "",
-  },
+export const NETWORK_LINKS: NetworkLink[] = [
+  { id: "github", label: "GitHub", href: "https://github.com/thedev-world" },
+  { id: "discord", label: "Discord", href: "" },
+  { id: "x", label: "X", href: "" },
 ];
-
-export function getNetworkLinks(): NetworkLink[] {
-  return DEFAULT_LINKS;
-}
