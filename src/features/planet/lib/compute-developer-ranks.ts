@@ -7,7 +7,7 @@ export type DeveloperRanks = {
   globalTotal: number
 }
 
-/** Ranks a developer from the raw planet JSON (GET /api/v1/planet). */
+/** Ranks a developer from the raw planet JSON snapshot. */
 export function computeDeveloperRanks(
   planetData: PlanetApiResponse,
   login: string,
