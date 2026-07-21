@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { apiFetch } from "@/lib/api-client"
+import { env } from "@/config/env"
 import { buildPlanetSnapshot } from "../lib/island-placement"
 import type { PlanetApiResponse, PlanetSnapshot } from "../types/snapshot"
 
 async function fetchPlanetData(): Promise<PlanetSnapshot> {
-  const res = await apiFetch("/api/v1/planet")
+  const res = await fetch(env.planetJsonUrl)
   if (!res.ok) throw new Error(`Failed to fetch planet data: ${res.status}`)
   const data: PlanetApiResponse = await res.json()
   return buildPlanetSnapshot(data)

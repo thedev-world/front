@@ -33,12 +33,7 @@ jobs:
         run: echo "${{ secrets.SCW_SECRET_KEY }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
 
       - name: Build image
-        run: |
-          docker build \
-            --build-arg BACKEND_URL=http://api:8000 \
-            --build-arg NEXT_PUBLIC_API_URL= \
-            -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }} \
-            .
+        run: docker build -t ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }} .
 
       - name: Push image tags
         run: docker push ${{ env.IMAGE }}:${{ steps.meta.outputs.tag_name }}
