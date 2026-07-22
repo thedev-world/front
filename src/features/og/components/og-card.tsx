@@ -57,6 +57,8 @@ export function OgCard({ data, planetImageSrc }: OgImageProps) {
         <div
           style={{
             display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             position: "absolute",
             top: 0,
             left: 0,
@@ -64,7 +66,18 @@ export function OgCard({ data, planetImageSrc }: OgImageProps) {
             height: OG_CARD_HEIGHT,
             background: "linear-gradient(160deg, #0e0d1e 0%, #08060f 55%, #0a0a1a 100%)",
           }}
-        />
+        >
+          <span
+            style={{
+              color: "rgba(255,255,255,0.25)",
+              fontSize: 15,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            Territory capture in progress...
+          </span>
+        </div>
       )}
 
       <div
