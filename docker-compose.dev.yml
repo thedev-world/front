@@ -1,0 +1,30 @@
+services:
+  front:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: devplanet-front-dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+      BACKEND_URL: http://api:8000
+    volumes:
+      - .:/app
+      - front_node_modules:/app/node_modules
+      - front_next:/app/.next
+    restart: unless-stopped
+    networks:
+      - devplanet-network
+
+networks:
+  devplanet-network:
+    external: true
+
+volumes:
+  front_node_modules:
+  front_next:

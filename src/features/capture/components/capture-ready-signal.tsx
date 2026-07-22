@@ -6,7 +6,7 @@ import { usePlanetData } from "@/features/planet/api/use-planet-data"
 import { usePlanetStore } from "@/features/planet/stores/planet-store"
 
 export function CaptureReadySignal() {
-  const { isPending } = usePlanetData()
+  const { isPending } = usePlanetData("/api/v1/planet")
   const cameraSettled = usePlanetStore((s) => s.cameraSettled)
 
   useEffect(() => {
