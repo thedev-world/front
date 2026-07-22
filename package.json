@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -32,6 +33,7 @@
     "next": "16.2.7",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
     "shadcn": "^4.7.0",
     "tailwind-merge": "^3.5.0",
     "three": "^0.184.0",

@@ -1,9 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { PageStatusBar } from "@/components/ui/page-status-bar";
 import { useNextSyncCountdown } from "@/features/profile/lib/use-next-sync-countdown";
 
 type Props = {
@@ -15,35 +12,21 @@ export function ProfileStatusBar({ githubLogin, nextSyncAt }: Props) {
   const { countdown, isReady } = useNextSyncCountdown(nextSyncAt);
 
   return (
-    <header className="anim-reveal-in flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-white/10 pb-5 text-xs">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          render={<Link href="/" />}
-          nativeButton={false}
-        >
-          <ArrowLeft className="size-3.5 shrink-0" aria-hidden />
-          Back to planet
-        </Button>
-
-        <span className="ticker uppercase tracking-[0.22em]">
-          <span className="text-muted-foreground">profile</span>
-          <span className="mx-1 text-muted-foreground/40">/</span>
-          <span className="text-foreground/80">@{githubLogin}</span>
-        </span>
-      </div>
-
-      <span className="ml-auto flex items-baseline gap-2 text-xs uppercase tracking-[0.22em]">
-        <span className={isReady ? "text-hi/80" : "text-muted-foreground/60"}>
-          {isReady ? "sync ready" : "next sync in"}
-        </span>
-        {!isReady && countdown && (
-          <span className="ticker tracking-normal normal-case tabular-nums text-muted-foreground">
-            {countdown}
+    <PageStatusBar
+      section="profile"
+      githubLogin={githubLogin}
+      trailing={
+        <span className="flex items-baseline gap-2 text-xs uppercase tracking-[0.22em]">
+          <span className={isReady ? "text-hi/80" : "text-muted-foreground/60"}>
+            {isReady ? "sync ready" : "next sync in"}
           </span>
-        )}
-      </span>
-    </header>
+          {!isReady && countdown ? (
+            <span className="ticker tracking-normal normal-case tabular-nums text-muted-foreground">
+              {countdown}
+            </span>
+          ) : null}
+        </span>
+      }
+    />
   );
 }

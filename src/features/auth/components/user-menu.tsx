@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, LogOut, User } from "lucide-react"
+import { ChevronDown, FileCode2, LogOut, User } from "lucide-react"
 import Link from "next/link"
 
 import { BadgeGlow } from "@/components/ui/badge-glow"
@@ -95,6 +95,15 @@ export function UserMenu({ user }: Props) {
             <Link href="/profile">
               <User size={13} className="text-hi" />
               View my profile
+            </Link>
+          }
+        />
+
+        <DropdownMenuItem
+          render={
+            <Link href="/readme">
+              <FileCode2 size={13} className="text-hi" />
+              Add to README
             </Link>
           }
         />

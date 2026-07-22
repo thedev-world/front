@@ -12,11 +12,6 @@ function backendUrl(): string {
   return (process.env.BACKEND_URL ?? "http://api:8000").replace(/\/$/, "")
 }
 
-function planetJsonUrl(base: string): string {
-  const direct = (process.env.PLANET_JSON_URL ?? "").replace(/\/$/, "")
-  return direct || `${base}/api/v1/planet`
-}
-
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
@@ -36,7 +31,7 @@ export async function buildOgImageProps(login: string): Promise<BuildResult> {
 
   const [userRes, planetRes] = await Promise.all([
     fetch(`${base}/api/v1/user/${encodeURIComponent(login)}`),
-    fetch(planetJsonUrl(base)),
+    fetch(`${base}/api/v1/planet`),
   ])
 
   if (!userRes.ok) {
