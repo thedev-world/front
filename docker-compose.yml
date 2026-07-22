@@ -3,6 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_PLANET_JSON_URL: ${NEXT_PUBLIC_PLANET_JSON_URL:-/snapshots/devplanet/planet-data.json}
+        SNAPSHOTS_ORIGIN: ${SNAPSHOTS_ORIGIN:-http://minio:9000}
     container_name: devplanet-front
     ports:
       - "3000:3000"

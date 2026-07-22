@@ -24,7 +24,7 @@ type Props = {
 
 export function CaptureScene({ targetLogin }: Props) {
   const { get: getThree } = useThree()
-  const { data: snapshot } = usePlanetData()
+  const { data: snapshot } = usePlanetData("/api/v1/planet")
   const { setIntroPhase, setCameraSettled } = usePlanetStore()
 
   const keyLightRef = useRef<THREE.DirectionalLight>(null)
