@@ -16,11 +16,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
-  title: "The dev world",
-  description: "Explore the global developer ecosystem",
+  title: {
+    default: "The dev world",
+    template: "%s — The dev world",
+  },
+  description: "Turn your GitHub activity into territory. Every commit, PR and review expands your land on the global developer planet.",
   openGraph: {
     siteName: "The dev world",
     type: "website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
