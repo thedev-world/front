@@ -42,6 +42,9 @@ type PlanetStore = {
   /** True once the camera has finished lerping to the user's island. */
   cameraSettled: boolean
   setCameraSettled: (v: boolean) => void
+  /** GitHub login of the developer currently inspected */
+  viewedGithubLogin: string | null
+  setViewedGithubLogin: (v: string | null) => void
 }
 
 export const usePlanetStore = create<PlanetStore>((set) => ({
@@ -71,4 +74,6 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setPlanetInteracted: (planetInteracted) => set({ planetInteracted }),
   cameraSettled: false,
   setCameraSettled: (cameraSettled) => set({ cameraSettled }),
+  viewedGithubLogin: null,
+  setViewedGithubLogin: (viewedGithubLogin) => set({ viewedGithubLogin }),
 }))

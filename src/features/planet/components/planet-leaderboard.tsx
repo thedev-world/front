@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronDown, Hexagon, Trophy } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import {
@@ -83,13 +84,18 @@ function LeaderboardRow({
 }
 
 export function PlanetLeaderboard() {
+  const router = useRouter()
   const leaderboard = usePlanetLeaderboard()
   const [collapsed, setCollapsed] = useState(true)
-  const { setFocusIslandId, setFocusGithubLogin } = usePlanetStore()
+  const setFocusIslandId = usePlanetStore((s) => s.setFocusIslandId)
 
   if (!leaderboard) return null
 
   const { topAll, myGlobalRank, byIsland } = leaderboard
+
+  const viewDeveloper = (login: string) => {
+    router.push(`/u/${encodeURIComponent(login)}`)
+  }
 
   const handleAccordionChange = (value: string[]) => {
     // Focus the island if a per-island item was just opened
@@ -136,7 +142,7 @@ export function PlanetLeaderboard() {
                       key={entry.githubLogin}
                       entry={entry}
                       showIsland={false}
-                      onClick={() => setFocusGithubLogin(entry.githubLogin)}
+                      onClick={() => viewDeveloper(entry.githubLogin)}
                     />
                   ))}
                   {myGlobalRank && (
@@ -145,7 +151,7 @@ export function PlanetLeaderboard() {
                       <LeaderboardRow
                         entry={myGlobalRank}
                         showIsland={false}
-                        onClick={() => setFocusGithubLogin(myGlobalRank.githubLogin)}
+                        onClick={() => viewDeveloper(myGlobalRank.githubLogin)}
                       />
                     </>
                   )}
@@ -172,7 +178,7 @@ export function PlanetLeaderboard() {
                         key={entry.githubLogin}
                         entry={entry}
                         showIsland={false}
-                        onClick={() => setFocusGithubLogin(entry.githubLogin)}
+                        onClick={() => viewDeveloper(entry.githubLogin)}
                       />
                     ))}
                     {myIslandRank && (
@@ -181,7 +187,7 @@ export function PlanetLeaderboard() {
                         <LeaderboardRow
                           entry={myIslandRank}
                           showIsland={false}
-                          onClick={() => setFocusGithubLogin(myIslandRank.githubLogin)}
+                          onClick={() => viewDeveloper(myIslandRank.githubLogin)}
                         />
                       </>
                     )}

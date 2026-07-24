@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { getBackendUrl } from "@/config/env";
 import type { MeProfile } from "@/features/auth/types/me";
 
 const SESSION_COOKIE_NAME = "devplanet_session";
@@ -12,8 +13,7 @@ export async function getMeFromRequest(
   try {
     // Proxy runs inside the Docker container — rewrites don't apply here,
     // so we must call the backend directly instead of going through thedev.world.
-    const backendBase = process.env.BACKEND_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
-    const meUrl = `${backendBase}/api/v1/me`;
+    const meUrl = `${getBackendUrl()}/api/v1/me`;
 
     const res = await fetch(meUrl, {
       headers: { cookie: `${session.name}=${session.value}` },

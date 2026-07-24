@@ -2,6 +2,7 @@
 
 import type { ThreeEvent } from "@react-three/fiber"
 import { useFrame } from "@react-three/fiber"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export function IslandTerritories({ snapshot }: Props) {
+  const router = useRouter()
   const {
     setHoveredTerritory,
     setMousePos,
@@ -26,6 +28,7 @@ export function IslandTerritories({ snapshot }: Props) {
     setShowOnboardingStats,
     focusGithubLogin,
     setFocusGithubLogin,
+    viewedGithubLogin,
     cameraSettled,
   } = usePlanetStore()
 
@@ -207,12 +210,16 @@ export function IslandTerritories({ snapshot }: Props) {
     }
   })
 
-  // Leaderboard "focus" highlight
+  // Focus highlight: profile route (/u/{login}) or leaderboard row click
   const focusedTerritoryIndex = useMemo(() => {
-    if (!focusGithubLogin) return null
-    const idx = snapshot.territories.findIndex((t) => t.githubLogin === focusGithubLogin)
+    const login = viewedGithubLogin ?? focusGithubLogin
+    if (!login) return null
+    const loginLower = login.toLowerCase()
+    const idx = snapshot.territories.findIndex(
+      (t) => t.githubLogin.toLowerCase() === loginLower,
+    )
     return idx === -1 ? null : idx
-  }, [focusGithubLogin, snapshot])
+  }, [viewedGithubLogin, focusGithubLogin, snapshot])
 
   const focusHighlightMeshRef = useRef<THREE.Mesh>(null)
   const focusBorderRef = useRef<THREE.LineSegments>(null)
@@ -430,7 +437,10 @@ export function IslandTerritories({ snapshot }: Props) {
       }
       setMousePos({ x: e.clientX, y: e.clientY })
       // Clear leaderboard focus when user interacts directly with the planet
-      if (usePlanetStore.getState().focusGithubLogin) setFocusGithubLogin(null)
+      // (but keep it while a developer is being viewed — the highlight is owned by /u/{login}).
+      const { focusGithubLogin: focused, viewedGithubLogin: viewed } =
+        usePlanetStore.getState()
+      if (focused && !viewed) setFocusGithubLogin(null)
       setHoveredTerritory(meshData.faceToTerritory[e.faceIndex])
     },
     [meshData.faceToTerritory, setFocusGithubLogin, setHoveredTerritory, setMousePos],
@@ -440,6 +450,35 @@ export function IslandTerritories({ snapshot }: Props) {
     setHoveredTerritory(null)
   }, [setHoveredTerritory])
 
+  // OrbitControls calls setPointerCapture on pointerdown, which suppresses the
+  // native `click` event — so detect the click manually via pointer down/up with
+  // a small movement threshold to ignore orbit drags.
+  const pointerDownRef = useRef<{ x: number; y: number } | null>(null)
+
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    if (e.button !== 0) return
+    pointerDownRef.current = { x: e.clientX, y: e.clientY }
+  }, [])
+
+  const handlePointerUp = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      const down = pointerDownRef.current
+      pointerDownRef.current = null
+      if (e.button !== 0 || !down) return
+      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y)
+      if (moved > 6) return
+      if (e.faceIndex == null) return
+      // Ignore back-facing hits.
+      const sphereNormal = e.point.clone().normalize()
+      const toCamera = e.camera.position.clone().sub(e.point)
+      if (sphereNormal.dot(toCamera) <= 0) return
+      const index = meshData.faceToTerritory[e.faceIndex]
+      const login = snapshot.territories[index]?.githubLogin
+      if (login) router.push(`/u/${encodeURIComponent(login)}`)
+    },
+    [meshData.faceToTerritory, router, snapshot.territories],
+  )
+
   return (
     <group>
       {/* Main territory mesh */}
@@ -447,6 +486,8 @@ export function IslandTerritories({ snapshot }: Props) {
         geometry={meshData.geometry}
         onPointerMove={handlePointerMove}
         onPointerOut={handlePointerOut}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
         frustumCulled={false}
       >
         <meshStandardMaterial

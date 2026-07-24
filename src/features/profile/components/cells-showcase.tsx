@@ -10,40 +10,14 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { IslandTag } from "@/components/ui/island-tag";
-import type { ReactNode } from "react";
-import type { MeProfile } from "@/features/auth/types/me";
 import { BadgeGlow } from "@/components/ui/badge-glow";
+import { Tag } from "@/components/ui/tag";
+import { StatItem } from "@/components/ui/stat-item";
+import type { MeProfile } from "@/features/auth/types/me";
 import { getIslandImagePath, getIslandLabel } from "@/features/onboarding/lib/island-image";
-import { formatCompactNumber } from "@/features/profile/lib/format";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 
 type Props = { profile: MeProfile };
-
-function StatItem({
-  icon,
-  label,
-  value,
-  delay = 0,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: number;
-  delay?: number;
-}) {
-  const animated = useCountUp(value, { duration: 1500, delay: 200 + delay });
-  return (
-    <div className="flex flex-col gap-2 border border-white/[0.05] bg-white/[0.01] p-4 transition-colors duration-300 hover:border-white/[0.09]">
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        <span className="[&_svg]:size-3">{icon}</span>
-        <span className="ticker text-[10px] uppercase tracking-[0.24em]">{label}</span>
-      </div>
-      <span className="ticker ticker-tabular text-[1.6rem] font-semibold leading-none text-foreground/80">
-        {formatCompactNumber(Math.round(animated))}
-      </span>
-    </div>
-  );
-}
 
 export function CellsShowcase({ profile }: Props) {
   const cellsDisplay = useCountUp(profile.cell_count, { duration: 2000, delay: 150 });
@@ -107,7 +81,7 @@ export function CellsShowcase({ profile }: Props) {
                 >
                   Territory
                 </h2>
-                {islandLabel && <IslandTag label={islandLabel} />}
+                {islandLabel && <Tag label={`${islandLabel} Islands`} />}
               </div>
 
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -150,13 +124,13 @@ export function CellsShowcase({ profile }: Props) {
               Stats
             </h3>
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-              <StatItem icon={<GitCommit />} label="Commits" value={profile.commits_alltime} delay={0} />
-              <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} delay={40} />
-              <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} delay={80} />
-              <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} delay={120} />
-              <StatItem icon={<Users />} label="Followers" value={profile.followers} delay={160} />
-              <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} delay={200} />
-              <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} delay={240} />
+              <StatItem icon={<GitCommit />} label="Commits" value={profile.commits_alltime} animate delay={0} />
+              <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} animate delay={40} />
+              <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} animate delay={80} />
+              <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} animate delay={120} />
+              <StatItem icon={<Users />} label="Followers" value={profile.followers} animate delay={160} />
+              <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} animate delay={200} />
+              <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} animate delay={240} />
             </div>
           </div>
 
