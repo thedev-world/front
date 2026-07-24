@@ -22,24 +22,31 @@ export async function generateMetadata({
   }
 
   const islandLabel = getIslandLabel(user.island);
-  const title = `@${user.github_login} - ${user.player_class.name} (Lvl ${user.xp_progress.level})`;
-  const description = islandLabel
-    ? `${user.player_class.name} on ${islandLabel} Islands - level ${user.xp_progress.level}, ${user.cell_count} cells claimed.`
-    : `${user.player_class.name} - level ${user.xp_progress.level}, ${user.cell_count} cells claimed.`;
+  const title = `@${user.github_login} — The dev world`;
+  const description = `${user.github_login} is a ${user.player_class.name} on ${islandLabel} Islands with ${user.cell_count} cells claimed. On The dev world, every commit, PR and review expands your territory on the global developer planet.`;
+
+  const ogImageUrl = `/og/${encodeURIComponent(user.github_login)}`
 
   return {
     title,
     description,
     openGraph: {
+      type: "profile",
+      url: `/u/${encodeURIComponent(user.github_login)}`,
       title,
       description,
-      images: [{ url: `/og/${encodeURIComponent(user.github_login)}` }],
+      images: [{
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: `@${user.github_login}'s developer territory on The dev world`,
+      }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [`/og/${encodeURIComponent(user.github_login)}`],
+      images: [ogImageUrl],
     },
   };
 }
