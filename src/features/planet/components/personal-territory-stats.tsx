@@ -96,7 +96,7 @@ function PersonalTerritoryStatsOverlay({
       <div
         ref={cardRef}
         className={cn(
-          "pointer-events-none absolute bottom-28 right-10 z-40 w-52 transition-all",
+          "pointer-events-none absolute bottom-10 right-10 z-40 w-52 transition-all",
         )}
         style={{
           transitionDuration: `${FADE_DURATION_MS}ms`,

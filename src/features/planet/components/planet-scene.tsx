@@ -22,8 +22,25 @@ import { TerritoryPositionTracker } from "./territory-position-tracker"
 
 /** Camera distance when centering on the user's island. */
 const CAM_DIST = 16
+/** Closer distance used when focusing a developer's profile (/u/{login}). */
+const PROFILE_CAM_DIST = 11
+/** Fraction of the viewport width the planet is pushed right when a profile is open. */
+const PROFILE_VIEW_SHIFT = 0.34
+/**
+ * Azimuth offset (radians) applied in profile mode so the focused territory
+ * sits left of the planet centre (leaving room beside the card).
+ */
+const PROFILE_YAW_OFFSET = 0.32
 /** Lerp factor per frame — ~2s to reach target at 60fps. */
 const LERP_FACTOR = 0.04
+
+type CameraTarget = {
+  island: Island
+  keepDistance: boolean
+  fixedRadius: number | null
+  /** Extra azimuth applied to the island anchor (profile framing). */
+  yawOffset: number
+}
 
 // Intro animation constants — single continuous camera motion
 const INTRO_DURATION = 8.0
@@ -47,6 +64,26 @@ export function PlanetScene() {
   // Reactive selectors for leaderboard focus
   const focusIslandId = usePlanetStore((s) => s.focusIslandId)
   const focusGithubLogin = usePlanetStore((s) => s.focusGithubLogin)
+  const viewedGithubLogin = usePlanetStore((s) => s.viewedGithubLogin)
+  const setFocusGithubLogin = usePlanetStore((s) => s.setFocusGithubLogin)
+
+  const introStartedRef = useRef(false)
+  const introCamInitRef = useRef(false)
+  const phaseStartTimeRef = useRef(0)
+  const planetGroupRef = useRef<THREE.Group>(null)
+  const postIntroThetaRef = useRef(Math.PI * 2)
+  const postIntroStartTimeRef = useRef(0)
+  const hasCenteredRef = useRef(false)
+  const cameraTargetIslandRef = useRef<CameraTarget | null>(null)
+  const needsFreezeRef = useRef(false)
+  const controlsRef = useRef<OrbitControlsImpl>(null)
+  const userInteractedRef = useRef(false)
+  const profileOffsetRef = useRef(0)
+  const viewOffsetActiveRef = useRef(false)
+  /** Camera radius before entering profile mode — restored on back. */
+  const preProfileRadiusRef = useRef<number | null>(null)
+  /** Island framed during profile — used to reverse yaw/zoom on exit. */
+  const profileIslandRef = useRef<Island | null>(null)
 
   // Always highlight the logged-in user's territory
   useEffect(() => {
@@ -57,26 +94,89 @@ export function PlanetScene() {
   useEffect(() => {
     if (!focusIslandId || !enrichedSnapshot) return
     const island = enrichedSnapshot.islands.find((i) => i.id === focusIslandId)
-    if (island) cameraTargetIslandRef.current = { island, keepDistance: true, fixedRadius: null }
+    if (island) {
+      cameraTargetIslandRef.current = {
+        island,
+        keepDistance: true,
+        fixedRadius: null,
+        yawOffset: 0,
+      }
+    }
   }, [focusIslandId, enrichedSnapshot])
 
   // Camera focus triggered by leaderboard row click (navigate to user's island)
   useEffect(() => {
     if (!focusGithubLogin || !enrichedSnapshot) return
+    // Profile mode owns the camera (closer zoom) — skip the leaderboard focus lerp.
+    if (usePlanetStore.getState().viewedGithubLogin) return
     const territory = enrichedSnapshot.territories.find((t) => t.githubLogin === focusGithubLogin)
     if (!territory) return
     const island = enrichedSnapshot.islands.find((i) => i.id === territory.islandId)
-    if (island) cameraTargetIslandRef.current = { island, keepDistance: true, fixedRadius: null }
+    if (island) {
+      cameraTargetIslandRef.current = {
+        island,
+        keepDistance: true,
+        fixedRadius: null,
+        yawOffset: 0,
+      }
+    }
   }, [focusGithubLogin, enrichedSnapshot])
 
-  // Intro animation for non-authenticated visitors
-  const introStartedRef = useRef(false)
-  const introCamInitRef = useRef(false)
-  const phaseStartTimeRef = useRef(0)
-  const planetGroupRef = useRef<THREE.Group>(null)
+  // Profile view (/u/{login}): zoom + yaw-framed island; reverse on exit.
+  useEffect(() => {
+    if (!enrichedSnapshot) return
 
+    if (!viewedGithubLogin) {
+      setFocusGithubLogin(null)
+      // Reverse the profile zoom back to the radius captured on enter.
+      const exitIsland = profileIslandRef.current
+      const exitRadius = preProfileRadiusRef.current
+      if (exitIsland && exitRadius !== null) {
+        cameraTargetIslandRef.current = {
+          island: exitIsland,
+          keepDistance: true,
+          fixedRadius: exitRadius,
+          yawOffset: 0,
+        }
+      }
+      profileIslandRef.current = null
+      preProfileRadiusRef.current = null
+      return
+    }
+
+    const loginLower = viewedGithubLogin.toLowerCase()
+    const territory = enrichedSnapshot.territories.find(
+      (t) => t.githubLogin.toLowerCase() === loginLower,
+    )
+    if (!territory) return
+    const island = enrichedSnapshot.islands.find((i) => i.id === territory.islandId)
+    if (!island) return
+
+    // Capture current zoom once so "back" can restore it.
+    if (preProfileRadiusRef.current === null) {
+      const controls = controlsRef.current
+      preProfileRadiusRef.current = controls ? controls.getDistance() : CAM_DIST
+    }
+    profileIslandRef.current = island
+
+    cameraTargetIslandRef.current = {
+      island,
+      keepDistance: true,
+      fixedRadius: PROFILE_CAM_DIST,
+      yawOffset: PROFILE_YAW_OFFSET,
+    }
+    setFocusGithubLogin(territory.githubLogin)
+  }, [viewedGithubLogin, enrichedSnapshot, setFocusGithubLogin])
+
+  // Intro animation for non-authenticated visitors
   useEffect(() => {
     if (meLoading || introStartedRef.current) return
+    // Deep-link to a profile (/u/{login}): skip the cinematic intro, focus straight away.
+    if (usePlanetStore.getState().viewedGithubLogin) {
+      introStartedRef.current = true
+      setIntroPhase("done")
+      return
+    }
     if (!me) {
       introStartedRef.current = true
       const alreadySeen = localStorage.getItem("thedevworld_intro_seen")
@@ -88,15 +188,6 @@ export function PlanetScene() {
       }
     }
   }, [me, meLoading, setIntroPhase])
-
-  // Angle theta at end of intro (2pi = back to origin), post-intro orbit continues from here
-  const postIntroThetaRef = useRef(Math.PI * 2)
-  const postIntroStartTimeRef = useRef(0)
-  const hasCenteredRef = useRef(false)
-  const cameraTargetIslandRef = useRef<{ island: Island; keepDistance: boolean; fixedRadius: number | null } | null>(null)
-  const needsFreezeRef = useRef(false)
-  const controlsRef = useRef<OrbitControlsImpl>(null)
-  const userInteractedRef = useRef(false)
 
   // Cancel camera lerp + skip intro/reveal when user starts interacting
   useEffect(() => {
@@ -124,18 +215,50 @@ export function PlanetScene() {
 
   useEffect(() => {
     if (!enrichedSnapshot || !me?.island || hasCenteredRef.current) return
+    // Profile deep-link / open card owns the camera — don't overwrite the zoom.
+    if (usePlanetStore.getState().viewedGithubLogin) {
+      hasCenteredRef.current = true
+      return
+    }
     const island = enrichedSnapshot.islands.find((i) => i.id === me.island)
     if (!island) return
-    cameraTargetIslandRef.current = { island: island, keepDistance: false, fixedRadius: null }
+    cameraTargetIslandRef.current = {
+      island,
+      keepDistance: false,
+      fixedRadius: null,
+      yawOffset: 0,
+    }
     hasCenteredRef.current = true
     if (usePlanetStore.getState().fromOnboarding) needsFreezeRef.current = true
-  }, [enrichedSnapshot, me?.island])
+  }, [enrichedSnapshot, me?.island, viewedGithubLogin])
 
-  useFrame(({ clock, camera: cam }) => {
-    const { introPhase } = usePlanetStore.getState()
+  useFrame(({ clock, camera: cam, size }) => {
+    const { introPhase, viewedGithubLogin } = usePlanetStore.getState()
 
-    // Hold camera at intro start position while waiting for intro to begin (guests only)
-    if (introPhase === "idle" && !me) {
+    // Lateral shift: slide the planet to the right while a dossier card is open.
+    const offsetTarget = viewedGithubLogin ? 1 : 0
+    profileOffsetRef.current += (offsetTarget - profileOffsetRef.current) * 0.06
+    const off = profileOffsetRef.current
+    const perspCam = cam as THREE.PerspectiveCamera
+    if (off > 0.001) {
+      // Negative x offset shifts rendered content to the right on screen.
+      perspCam.setViewOffset(
+        size.width,
+        size.height,
+        -size.width * PROFILE_VIEW_SHIFT * off,
+        0,
+        size.width,
+        size.height,
+      )
+      viewOffsetActiveRef.current = true
+    } else if (viewOffsetActiveRef.current) {
+      perspCam.clearViewOffset()
+      viewOffsetActiveRef.current = false
+    }
+
+    // Hold camera at intro start position while waiting for intro to begin (guests only).
+    // Skip when a developer is being viewed so deep-links can zoom immediately.
+    if (introPhase === "idle" && !me && !viewedGithubLogin) {
       cam.position.copy(sphericalToWorld(INTRO_START_PHI, 0, INTRO_START_RADIUS))
       cam.lookAt(0, 0, 0)
       return
@@ -213,7 +336,8 @@ export function PlanetScene() {
 
     const [phi, theta] = target_ref.island.anchor
     const radius = target_ref.keepDistance ? (target_ref.fixedRadius ?? CAM_DIST) : CAM_DIST
-    const target = sphericalToWorld(phi, theta, radius)
+    // Positive yawOffset orbits the camera so the territory sits left of centre.
+    const target = sphericalToWorld(phi, theta + target_ref.yawOffset, radius)
 
     // SLERP on direction + lerp on radius so the camera arcs around the planet
     const currentDir = cam.position.clone().normalize()
@@ -226,8 +350,11 @@ export function PlanetScene() {
     cam.lookAt(0, 0, 0)
 
     if (cam.position.distanceTo(target) < 0.08) {
-      cameraTargetIslandRef.current = null
       setCameraSettled(true)
+      // Keep dossier framing locked so deep-links stay zoomed after settle.
+      if (!(viewedGithubLogin && target_ref.yawOffset !== 0)) {
+        cameraTargetIslandRef.current = null
+      }
     }
   })
 

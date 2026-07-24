@@ -1,4 +1,5 @@
-import type { DeveloperPublicProfile } from "@/features/developer/types/developer-public"
+import { getBackendUrl } from "@/config/env"
+import { fetchPublicDeveloperServer } from "@/features/developer/api/public-developer-server"
 import { getIslandLabel } from "@/features/onboarding/lib/island-image"
 import { computeDeveloperRanks } from "@/features/planet/lib/compute-developer-ranks"
 import type { PlanetApiResponse } from "@/features/planet/types/snapshot"
@@ -7,10 +8,6 @@ import type { OgImageProps } from "../types"
 type BuildResult =
   | { ok: true; props: OgImageProps }
   | { ok: false; status: number; message: string }
-
-function backendUrl(): string {
-  return (process.env.BACKEND_URL ?? "http://api:8000").replace(/\/$/, "")
-}
 
 async function loadImageAsDataUrl(url: string): Promise<string | null> {
   try {
@@ -26,23 +23,18 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
 
 /** Server-side data assembly for OG image generation. No React Query, plain fetch. */
 export async function buildOgImageProps(login: string): Promise<BuildResult> {
-  const base = backendUrl()
+  const base = getBackendUrl()
   const captureBase = (process.env.PLANET_CAPTURE_BASE_URL ?? "").replace(/\/$/, "")
 
-  const [userRes, planetRes] = await Promise.all([
-    fetch(`${base}/api/v1/user/${encodeURIComponent(login)}`),
+  const [user, planetRes] = await Promise.all([
+    fetchPublicDeveloperServer(login),
     fetch(`${base}/api/v1/planet`),
   ])
 
-  if (!userRes.ok) {
-    return {
-      ok: false,
-      status: userRes.status === 404 ? 404 : 502,
-      message: userRes.status === 404 ? "Developer not found" : "Failed to fetch user",
-    }
+  if (!user) {
+    return { ok: false, status: 404, message: "Developer not found" }
   }
 
-  const user: DeveloperPublicProfile = await userRes.json()
   const planetData: PlanetApiResponse = planetRes.ok ? await planetRes.json() : { updated_at: "", islands: {} }
 
   const islandId = user.island ?? ""

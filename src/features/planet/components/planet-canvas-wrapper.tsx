@@ -21,9 +21,11 @@ export function PlanetCanvasWrapper() {
   const { isPending } = usePlanetData();
   const { data: me, isLoading: meLoading } = useMe();
   const introPhase = usePlanetStore((s) => s.introPhase);
+  const viewedGithubLogin = usePlanetStore((s) => s.viewedGithubLogin);
 
   const isGuest = !meLoading && !me;
-  const showOverlay = isGuest && (introPhase === "text" || introPhase === "done");
+  const showOverlay =
+    isGuest && !viewedGithubLogin && (introPhase === "text" || introPhase === "done");
 
   return (
     <div className="relative h-full w-full">

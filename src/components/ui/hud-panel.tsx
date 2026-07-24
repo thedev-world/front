@@ -16,8 +16,10 @@ export function HudReadoutShell({
 }: ShellProps) {
   return (
     <div className={cn(className)} {...props}>
-      <div className="hud-readout-panel-border">
-        <div className={cn("hud-readout-panel-inner", innerClassName)}>{children}</div>
+      <div className="hud-readout-panel-border h-full min-h-0">
+        <div className={cn("hud-readout-panel-inner h-full min-h-0", innerClassName)}>
+          {children}
+        </div>
       </div>
     </div>
   )

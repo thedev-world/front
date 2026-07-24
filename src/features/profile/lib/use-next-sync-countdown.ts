@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type CountdownState = { countdown: string; isReady: boolean };
 
@@ -20,16 +20,16 @@ function computeCountdown(nextSyncAt: string): CountdownState {
 }
 
 export function useNextSyncCountdown(nextSyncAt: string | null): CountdownState {
-  const [tick, setTick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 1000);
+    if (!nextSyncAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [nextSyncAt]);
 
-   
-  return useMemo(
-    () => (nextSyncAt ? computeCountdown(nextSyncAt) : { countdown: "", isReady: true }),
-    [nextSyncAt, tick],
-  );
+  if (!nextSyncAt) return { countdown: "", isReady: true };
+  // `now` invalidates the computation every second.
+  void now;
+  return computeCountdown(nextSyncAt);
 }

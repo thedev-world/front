@@ -45,7 +45,7 @@ type UserAvatarProps = {
   avatarUrl?: string | null
   alt?: string
   className?: string
-  size?: "sm" | "md"
+  size?: "sm" | "md" | "lg"
   loading?: boolean
   chamfer?: ChamferCorners
 }
@@ -53,11 +53,13 @@ type UserAvatarProps = {
 const sizeClasses = {
   sm: "size-9",
   md: "size-10",
+  lg: "size-14",
 } as const
 
 const fallbackTextClasses = {
   sm: "text-[10px]",
   md: "text-[11px]",
+  lg: "text-sm",
 } as const
 
 const avatarClassName = [
