@@ -1,11 +1,11 @@
-const SITE_URL = "https://thedev.world";
+import { env } from "@/config/env";
 
 export const README_SNIPPET_HEADING = "## My thedev.world live stats";
 
 export function buildReadmeSnippet(login: string): string {
   return `${README_SNIPPET_HEADING}
 
-[![My The Dev World stats](${SITE_URL}/og/${login})](${SITE_URL})`;
+[![My The Dev World stats](${env.siteUrl}/og/${login})](${env.siteUrl}/u/${login})`;
 }
 
 export function buildDefaultReadmeContent(login: string): string {
@@ -13,5 +13,5 @@ export function buildDefaultReadmeContent(login: string): string {
 
 ${buildReadmeSnippet(login)}
 
-Building on [thedev.world](${SITE_URL}).`;
+Building on [thedev.world](${env.siteUrl}).`;
 }

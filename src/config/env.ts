@@ -1,6 +1,7 @@
 export const env = {
   apiUrl: process.env.NEXT_PUBLIC_API_URL ?? "",
   planetJsonUrl: process.env.NEXT_PUBLIC_PLANET_JSON_URL || "/api/v1/planet",
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://thedev.world",
 } as const
 
 /**

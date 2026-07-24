@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { env } from "@/config/env";
 import { AppProviders } from "./providers";
 import "./globals.css";
 
@@ -14,8 +15,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(env.siteUrl),
   title: "The dev world",
   description: "Explore the global developer ecosystem",
+  openGraph: {
+    siteName: "The dev world",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@thedevworld",
+  },
 };
 
 export default function RootLayout({
