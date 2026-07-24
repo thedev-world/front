@@ -16,35 +16,39 @@ export async function generateMetadata({
 
   if (!user) {
     return {
-      title: `@${login} - The dev world`,
-      description: `Explore @${login}'s developer territory in The dev world.`,
+      title: `@${login}`,
+      description: `Explore @${login}'s developer territory on The dev world.`,
+      openGraph: { siteName: "The dev world" },
     };
   }
 
   const islandLabel = getIslandLabel(user.island);
-  const title = `@${user.github_login} — The dev world`;
-  const description = `${user.github_login} is a ${user.player_class.name} on ${islandLabel} Islands with ${user.cell_count} cells claimed. On The dev world, every commit, PR and review expands your territory on the global developer planet.`;
+  const title = `@${user.github_login}`;
+  const description = `${user.player_class.name} Lvl ${user.xp_progress.level} on ${islandLabel} Islands - ${user.cell_count} cells. Explore their territory on the developer planet.`;
 
-  const ogImageUrl = `/og/${encodeURIComponent(user.github_login)}`
+  const ogImageUrl = `/og/${encodeURIComponent(user.github_login)}`;
 
   return {
     title,
     description,
     openGraph: {
       type: "profile",
+      siteName: "The dev world",
       url: `/u/${encodeURIComponent(user.github_login)}`,
-      title,
+      title: `${title} - The dev world`,
       description,
-      images: [{
-        url: ogImageUrl,
-        width: 1200,
-        height: 630,
-        alt: `@${user.github_login}'s developer territory on The dev world`,
-      }],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `@${user.github_login} on The dev world`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: `${title} - The dev world`,
       description,
       images: [ogImageUrl],
     },
