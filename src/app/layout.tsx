@@ -18,9 +18,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
   title: {
     default: "The dev world",
-    template: "%s — The dev world",
+    template: "%s - The dev world",
   },
-  description: "Turn your GitHub activity into territory. Every commit, PR and review expands your land on the global developer planet.",
+  description:
+    "Turn GitHub activity into territory on a living developer planet. Commits, PRs and reviews claim your land.",
   openGraph: {
     siteName: "The dev world",
     type: "website",
