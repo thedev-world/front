@@ -17,7 +17,10 @@ export function NetworkDock() {
   const links = NETWORK_LINKS;
 
   return (
-    <HudBottomLeftDock innerClassName="px-6 py-3 pr-4">
+    <HudBottomLeftDock
+      className="max-hud-compact:hidden"
+      innerClassName="px-6 py-3 pr-4"
+    >
       <div className="flex items-center gap-0.5">
         {links.map((link) => {
           const hasHref = link.href.length > 0;

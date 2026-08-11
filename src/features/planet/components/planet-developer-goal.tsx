@@ -44,6 +44,7 @@ function PlanetDeveloperGoalBar({
 
   return (
     <HudTopDock
+      className="max-hud-mobile:hidden"
       role="progressbar"
       aria-valuenow={developerCount}
       aria-valuemin={0}

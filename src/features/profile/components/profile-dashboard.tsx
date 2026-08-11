@@ -1,8 +1,9 @@
 "use client";
 
+import { DashboardPageHeader } from "@/components/ui/dashboard-page-header";
+import { DashboardPageShell } from "@/components/ui/dashboard-page-shell";
 import { useMe } from "@/features/auth/api/use-me";
 import { CellsShowcase } from "@/features/profile/components/cells-showcase";
-import { CosmicBackdrop } from "@/features/profile/components/cosmic-backdrop";
 import { ProfileHero } from "@/features/profile/components/profile-hero";
 import {
   ProfileError,
@@ -16,40 +17,47 @@ export function ProfileDashboard() {
   const me = useMe();
 
   return (
-    <main className="relative min-h-svh w-full">
-      <CosmicBackdrop />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 hex-grid-corner opacity-[0.08]"
-      />
+    <DashboardPageShell>
+      {me.isPending ? (
+        <div className="relative flex flex-1 items-center justify-center">
+          <ProfileLoading />
+        </div>
+      ) : null}
 
-      <div className="relative isolate mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10 sm:gap-16 sm:px-6 sm:py-14 lg:gap-20 lg:px-8 lg:py-20">
-        {me.isPending ? <ProfileLoading /> : null}
-
-        {!me.isPending && !me.data && me.error ? (
+      {!me.isPending && !me.data && me.error ? (
+        <div className="relative flex flex-1 items-center justify-center">
           <ProfileError
             message={
-              me.error instanceof Error
-                ? me.error.message
-                : "Unknown error"
+              me.error instanceof Error ? me.error.message : "Unknown error"
             }
           />
-        ) : null}
+        </div>
+      ) : null}
 
-        {!me.isPending && !me.data && !me.error ? <ProfileUnauthorized /> : null}
+      {!me.isPending && !me.data && !me.error ? (
+        <div className="relative flex flex-1 items-center justify-center">
+          <ProfileUnauthorized />
+        </div>
+      ) : null}
 
-        {me.data ? (
-          <>
+      {me.data ? (
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <DashboardPageHeader>
             <ProfileStatusBar
               githubLogin={me.data.github_login}
               nextSyncAt={me.data.next_sync_at}
             />
-            <ProfileHero profile={me.data} />
-            <CellsShowcase profile={me.data} />
+          </DashboardPageHeader>
+
+          <div className="relative flex-1 overflow-x-hidden overflow-y-auto">
+            <div className="relative isolate mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-8 sm:gap-16 sm:px-6 sm:py-10 lg:gap-20 lg:px-8 lg:py-12">
+              <ProfileHero profile={me.data} />
+              <CellsShowcase profile={me.data} />
+            </div>
             <RankProgression profile={me.data} />
-          </>
-        ) : null}
-      </div>
-    </main>
+          </div>
+        </div>
+      ) : null}
+    </DashboardPageShell>
   );
 }

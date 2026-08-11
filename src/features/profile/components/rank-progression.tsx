@@ -76,11 +76,11 @@ export function RankProgression({ profile }: Props) {
 
   return (
     <section
-      className="anim-reveal-up"
+      className="anim-reveal-up mt-12 pb-8 sm:mt-16 sm:pb-10 lg:mt-20 lg:pb-12"
       style={{ animationDelay: "120ms" }}
       aria-labelledby="ranks-heading"
     >
-      <header className="mb-6 flex flex-wrap items-baseline justify-between gap-3 pb-5">
+      <header className="mx-auto mb-6 flex w-full max-w-6xl flex-wrap items-baseline justify-between gap-3 px-4 pb-5 sm:px-6 lg:px-8">
         <SectionTickerHeading
           id="ranks-heading"
           title="ranks"
@@ -89,7 +89,7 @@ export function RankProgression({ profile }: Props) {
         />
       </header>
 
-      <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2">
+      <div className="relative w-full">
         <div className="border-y border-white/[0.07] bg-background/95">
           <div className="relative">
             <div

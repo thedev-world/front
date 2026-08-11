@@ -20,11 +20,11 @@ export function ProfileStatusBar({ githubLogin, nextSyncAt }: Props) {
           <span className={isReady ? "text-hi/80" : "text-muted-foreground/60"}>
             {isReady ? "sync ready" : "next sync in"}
           </span>
-          {!isReady && countdown ? (
+          {!isReady && (
             <span className="ticker tracking-normal normal-case tabular-nums text-muted-foreground">
               {countdown}
             </span>
-          ) : null}
+          )}
         </span>
       }
     />

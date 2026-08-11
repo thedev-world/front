@@ -21,6 +21,9 @@ import {
   PLAYER_CLASS_FALLBACK,
   type PlayerClassSlug,
 } from "@/features/developer/lib/player-class"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import { BREAKPOINTS, mediaQuery } from "@/lib/breakpoints"
+import { cn } from "@/lib/utils"
 
 type Props = {
   user: MeProfile
@@ -28,13 +31,21 @@ type Props = {
 
 export function UserMenu({ user }: Props) {
   const logoutMutation = useLogout()
+  const isMobile = useMediaQuery(mediaQuery.max(BREAKPOINTS.hudMobile))
   const slug = user.player_class.name.trim().toLowerCase() as PlayerClassSlug
   const badge = BADGE_BY_SLUG[slug] ?? PLAYER_CLASS_FALLBACK.badge
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger aria-label="User menu">
+        <UserAvatar
+          githubLogin={user.github_login}
+          avatarUrl={user.avatar_url}
+          className="hidden max-hud-mobile:block"
+        />
+
         <HudReadoutShell
+          className="max-hud-mobile:hidden"
           innerClassName={[
             "flex h-10 items-stretch overflow-hidden p-0"
           ].join(" ")}
@@ -89,7 +100,13 @@ export function UserMenu({ user }: Props) {
         </HudReadoutShell>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent matchAnchorWidth side="bottom" align="start" sideOffset={8}>
+      <DropdownMenuContent
+        matchAnchorWidth={!isMobile}
+        className={cn(isMobile && "min-w-[13rem]")}
+        side="bottom"
+        align="start"
+        sideOffset={8}
+      >
         <DropdownMenuItem
           render={
             <Link href="/profile">
