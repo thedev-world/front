@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 
+import { DashboardPageHeader } from "@/components/ui/dashboard-page-header";
+import { DashboardPageShell } from "@/components/ui/dashboard-page-shell";
 import { PageStatusBar } from "@/components/ui/page-status-bar";
 import { useMe } from "@/features/auth/api/use-me";
 import {
@@ -9,7 +11,6 @@ import {
   ProfileLoading,
   ProfileUnauthorized,
 } from "@/features/profile/components/profile-states";
-import { CosmicBackdrop } from "@/features/profile/components/cosmic-backdrop";
 import { useMyReadme } from "@/features/readme-share/api/use-my-readme";
 import { ReadmeWorkspace } from "@/features/readme-share/components/readme-workspace";
 
@@ -30,13 +31,7 @@ export function ReadmeShareDashboard() {
     : (myReadme.data?.source ?? "empty");
 
   return (
-    <main className="relative flex h-svh w-full flex-col overflow-hidden">
-      <CosmicBackdrop />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 hex-grid-corner opacity-[0.05]"
-      />
-
+    <DashboardPageShell className="h-svh overflow-hidden">
       {isLoading ? (
         <div className="relative flex flex-1 items-center justify-center">
           <ProfileLoading />
@@ -61,9 +56,9 @@ export function ReadmeShareDashboard() {
 
       {me.data && !isLoading ? (
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="shrink-0 border-b border-white/10 bg-[#010409]/80 px-4 py-3 backdrop-blur-sm sm:px-6">
+          <DashboardPageHeader>
             <PageStatusBar section="readme" githubLogin={me.data.github_login} />
-          </div>
+          </DashboardPageHeader>
 
           <ReadmeWorkspace
             githubLogin={me.data.github_login}
@@ -72,6 +67,6 @@ export function ReadmeShareDashboard() {
           />
         </div>
       ) : null}
-    </main>
+    </DashboardPageShell>
   );
 }

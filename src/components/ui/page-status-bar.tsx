@@ -14,8 +14,8 @@ type Props = {
 
 export function PageStatusBar({ section, githubLogin, trailing }: Props) {
   return (
-    <header className="anim-reveal-in flex flex-wrap items-center gap-x-5 gap-y-2 py-5 text-xs">
-      <div className="flex items-center gap-3">
+    <header className="anim-reveal-in flex flex-col gap-4 text-xs md:flex-row md:flex-wrap md:items-center md:gap-x-5 md:gap-y-2">
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
         <Button
           variant="secondary"
           size="sm"
@@ -34,7 +34,7 @@ export function PageStatusBar({ section, githubLogin, trailing }: Props) {
       </div>
 
       {trailing ? (
-        <div className="ml-auto flex items-center gap-2">{trailing}</div>
+        <div className="flex items-center gap-2 lg:ml-auto">{trailing}</div>
       ) : null}
     </header>
   );

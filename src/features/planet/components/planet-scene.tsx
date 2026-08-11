@@ -9,6 +9,12 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 
 import { useMe } from "@/features/auth/api/use-me"
 import { useEnrichedPlanetData } from "../api/use-enriched-planet-data"
+import {
+  buildPlanetCameraLayout,
+  getPlanetCameraLayout,
+  PLANET_CAMERA_BASE,
+  type PlanetCameraLayout,
+} from "../lib/planet-camera-layout"
 import { sphericalToWorld } from "../lib/planet-projection"
 import { usePlanetStore } from "../stores/planet-store"
 import type { Island } from "../types/snapshot"
@@ -20,12 +26,6 @@ import { OceanPlanet } from "./ocean-planet"
 import { StarField } from "./star-field"
 import { TerritoryPositionTracker } from "./territory-position-tracker"
 
-/** Camera distance when centering on the user's island. */
-const CAM_DIST = 16
-/** Closer distance used when focusing a developer's profile (/u/{login}). */
-const PROFILE_CAM_DIST = 11
-/** Fraction of the viewport width the planet is pushed right when a profile is open. */
-const PROFILE_VIEW_SHIFT = 0.34
 /**
  * Azimuth offset (radians) applied in profile mode so the focused territory
  * sits left of the planet centre (leaving room beside the card).
@@ -45,7 +45,6 @@ type CameraTarget = {
 // Intro animation constants — single continuous camera motion
 const INTRO_DURATION = 8.0
 const INTRO_START_RADIUS = 50
-const INTRO_END_RADIUS = 16
 const INTRO_START_PHI = Math.PI / 2.5
 
 export function PlanetScene() {
@@ -84,6 +83,8 @@ export function PlanetScene() {
   const preProfileRadiusRef = useRef<number | null>(null)
   /** Island framed during profile — used to reverse yaw/zoom on exit. */
   const profileIslandRef = useRef<Island | null>(null)
+  const layoutRef = useRef<PlanetCameraLayout>(getPlanetCameraLayout(1920))
+  const scaleRef = useRef(1)
 
   // Always highlight the logged-in user's territory
   useEffect(() => {
@@ -155,14 +156,16 @@ export function PlanetScene() {
     // Capture current zoom once so "back" can restore it.
     if (preProfileRadiusRef.current === null) {
       const controls = controlsRef.current
-      preProfileRadiusRef.current = controls ? controls.getDistance() : CAM_DIST
+      preProfileRadiusRef.current = controls
+        ? controls.getDistance()
+        : layoutRef.current.camDist
     }
     profileIslandRef.current = island
 
     cameraTargetIslandRef.current = {
       island,
       keepDistance: true,
-      fixedRadius: PROFILE_CAM_DIST,
+      fixedRadius: layoutRef.current.profileCamDist,
       yawOffset: PROFILE_YAW_OFFSET,
     }
     setFocusGithubLogin(territory.githubLogin)
@@ -234,18 +237,34 @@ export function PlanetScene() {
 
   useFrame(({ clock, camera: cam, size }) => {
     const { introPhase, viewedGithubLogin } = usePlanetStore.getState()
+    const viewportMin = Math.min(size.width, size.height)
+    const targetScale = getPlanetCameraLayout(viewportMin).scale
+    scaleRef.current += (targetScale - scaleRef.current) * 0.12
+    const layout = buildPlanetCameraLayout(scaleRef.current, viewportMin)
+    layoutRef.current = layout
+
+    const perspCam = cam as THREE.PerspectiveCamera
+    if (perspCam.fov !== layout.fov) {
+      perspCam.fov = layout.fov
+      perspCam.updateProjectionMatrix()
+    }
+
+    const controls = controlsRef.current
+    if (controls) {
+      controls.minDistance = layout.minDistance
+      controls.maxDistance = layout.maxDistance
+    }
 
     // Lateral shift: slide the planet to the right while a dossier card is open.
     const offsetTarget = viewedGithubLogin ? 1 : 0
     profileOffsetRef.current += (offsetTarget - profileOffsetRef.current) * 0.06
     const off = profileOffsetRef.current
-    const perspCam = cam as THREE.PerspectiveCamera
     if (off > 0.001) {
       // Negative x offset shifts rendered content to the right on screen.
       perspCam.setViewOffset(
         size.width,
         size.height,
-        -size.width * PROFILE_VIEW_SHIFT * off,
+        -size.width * layout.profileViewShift * off,
         0,
         size.width,
         size.height,
@@ -281,7 +300,7 @@ export function PlanetScene() {
       // Radius: approaches in ~3s
       const radiusT = Math.min(elapsed / 3.0, 1)
       const radiusEased = 1 - Math.pow(1 - radiusT, 3)
-      const radius = INTRO_START_RADIUS - (INTRO_START_RADIUS - INTRO_END_RADIUS) * radiusEased
+      const radius = INTRO_START_RADIUS - (INTRO_START_RADIUS - layout.introEndRadius) * radiusEased
 
       // Theta: full 360° with ease-out (rotates fast at start, slows at end)
       const theta = Math.PI * 2 * eased
@@ -316,7 +335,7 @@ export function PlanetScene() {
       const postElapsed = clock.getElapsedTime() - postIntroStartTimeRef.current
       const speed = Math.min(postElapsed / 0.3, 1) * 0.0008
       postIntroThetaRef.current += speed
-      cam.position.copy(sphericalToWorld(INTRO_START_PHI, postIntroThetaRef.current, INTRO_END_RADIUS))
+      cam.position.copy(sphericalToWorld(INTRO_START_PHI, postIntroThetaRef.current, layout.introEndRadius))
       cam.lookAt(0, 0, 0)
     }
 
@@ -335,7 +354,7 @@ export function PlanetScene() {
     }
 
     const [phi, theta] = target_ref.island.anchor
-    const radius = target_ref.keepDistance ? (target_ref.fixedRadius ?? CAM_DIST) : CAM_DIST
+    const radius = target_ref.keepDistance ? (target_ref.fixedRadius ?? layout.camDist) : layout.camDist
     // Positive yawOffset orbits the camera so the territory sits left of centre.
     const target = sphericalToWorld(phi, theta + target_ref.yawOffset, radius)
 
@@ -373,8 +392,8 @@ export function PlanetScene() {
       <OrbitControls
         ref={controlsRef}
         enablePan={false}
-        minDistance={7}
-        maxDistance={30}
+        minDistance={PLANET_CAMERA_BASE.minDistance}
+        maxDistance={PLANET_CAMERA_BASE.maxDistance}
         zoomSpeed={0.5}
         rotateSpeed={0.4}
         dampingFactor={0.08}

@@ -55,7 +55,7 @@ export function DeveloperProfileOverlay() {
 
   return (
     <div
-      className="absolute inset-y-32 left-32 z-50 flex w-[min(32rem,calc(100%-4rem))] flex-col transition-all duration-500 ease-out"
+      className="absolute inset-y-32 left-32 z-50 flex w-[min(32rem,calc(100%-4rem))] flex-col transition-all duration-500 ease-out max-profile-full:inset-0 max-profile-full:w-full"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateX(0)" : "translateX(-1.25rem)",
