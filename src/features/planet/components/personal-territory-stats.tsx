@@ -57,8 +57,6 @@ function PersonalTerritoryStatsOverlay({
   }
 
   useEffect(() => {
-    localStorage.setItem("thedevworld_stats_shown", "1")
-
     schedule(() => setCardVisible(true), CARD_DELAY_MS)
 
     schedule(() => {

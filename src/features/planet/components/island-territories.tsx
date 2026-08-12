@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
 import { buildTerritoryMesh } from "../lib/territory-mesh-builder"
+import { hasPersonalTerritoryStatsBeenShown, markPersonalTerritoryStatsShown } from "../lib/personal-territory-stats-storage"
 import { usePlanetStore } from "../stores/planet-store"
 import type { PlanetSnapshot } from "../types/snapshot"
 
@@ -140,10 +141,12 @@ export function IslandTerritories({ snapshot }: Props) {
   const myBorderRef = useRef<THREE.LineSegments>(null)
   const myPulseRef = useRef(0)
 
-  // First authenticated visit: show stats once the camera has settled on the island.
   useEffect(() => {
     if (myTerritoryIndex === null || fromOnboarding || !cameraSettled) return
+    if (hasPersonalTerritoryStatsBeenShown()) return
+    markPersonalTerritoryStatsShown()
     setShowOnboardingStats(true)
+    return () => setShowOnboardingStats(false)
   }, [myTerritoryIndex, fromOnboarding, cameraSettled, setShowOnboardingStats])
 
   useEffect(() => {
@@ -383,7 +386,10 @@ export function IslandTerritories({ snapshot }: Props) {
         posBackupRef.current = null
         setFromOnboarding(false)
         setPausedAt(null)
-        setShowOnboardingStats(true)
+        if (!hasPersonalTerritoryStatsBeenShown()) {
+          markPersonalTerritoryStatsShown()
+          setShowOnboardingStats(true)
+        }
       } else {
         // Shape: fast rise (0→0.2 in 20% of time) then slow fade (0.2→1.0 in 80%)
         mat.opacity = t < 0.2 ? (t / 0.2) : (1 - (t - 0.2) / 0.8)
