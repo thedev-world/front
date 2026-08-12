@@ -17,7 +17,7 @@ export function DashboardPageShell({
 }: Props) {
   return (
     <main
-      className={cn("relative flex min-h-svh w-full flex-col", className)}
+      className={cn("relative flex h-svh w-full flex-col overflow-hidden", className)}
     >
       <CosmicBackdrop />
       <div

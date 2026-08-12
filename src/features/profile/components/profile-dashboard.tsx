@@ -2,6 +2,7 @@
 
 import { DashboardPageHeader } from "@/components/ui/dashboard-page-header";
 import { DashboardPageShell } from "@/components/ui/dashboard-page-shell";
+import { PageScroll } from "@/components/ui/page-scroll";
 import { useMe } from "@/features/auth/api/use-me";
 import { CellsShowcase } from "@/features/profile/components/cells-showcase";
 import { ProfileHero } from "@/features/profile/components/profile-hero";
@@ -49,13 +50,13 @@ export function ProfileDashboard() {
             />
           </DashboardPageHeader>
 
-          <div className="relative flex-1 overflow-x-hidden overflow-y-auto">
+          <PageScroll>
             <div className="relative isolate mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-8 sm:gap-16 sm:px-6 sm:py-10 lg:gap-20 lg:px-8 lg:py-12">
               <ProfileHero profile={me.data} />
               <CellsShowcase profile={me.data} />
             </div>
             <RankProgression profile={me.data} />
-          </div>
+          </PageScroll>
         </div>
       ) : null}
     </DashboardPageShell>

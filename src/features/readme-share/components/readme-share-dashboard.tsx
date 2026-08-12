@@ -31,7 +31,7 @@ export function ReadmeShareDashboard() {
     : (myReadme.data?.source ?? "empty");
 
   return (
-    <DashboardPageShell className="h-svh overflow-hidden">
+    <DashboardPageShell>
       {isLoading ? (
         <div className="relative flex flex-1 items-center justify-center">
           <ProfileLoading />
