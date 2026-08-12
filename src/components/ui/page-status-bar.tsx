@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   section: string;
-  githubLogin: string;
+  githubLogin?: string;
   trailing?: ReactNode;
 };
 
@@ -26,11 +26,17 @@ export function PageStatusBar({ section, githubLogin, trailing }: Props) {
           Back to planet
         </Button>
 
-        <span className="ticker uppercase tracking-[0.22em]">
-          <span className="text-muted-foreground">{section}</span>
-          <span className="mx-1 text-muted-foreground/40">/</span>
-          <span className="text-foreground/80">@{githubLogin}</span>
-        </span>
+        {githubLogin ? (
+          <span className="ticker uppercase tracking-[0.22em]">
+            <span className="text-muted-foreground">{section}</span>
+            <span className="mx-1 text-muted-foreground/40">/</span>
+            <span className="text-foreground/80">@{githubLogin}</span>
+          </span>
+        ) : (
+          <span className="ticker uppercase tracking-[0.22em] text-muted-foreground">
+            {section}
+          </span>
+        )}
       </div>
 
       {trailing ? (
