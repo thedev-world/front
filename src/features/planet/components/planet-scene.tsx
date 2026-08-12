@@ -16,6 +16,8 @@ import {
   type PlanetCameraLayout,
 } from "../lib/planet-camera-layout"
 import { sphericalToWorld } from "../lib/planet-projection"
+import { attachWorldInteractionDetection } from "../lib/world-interaction-detection"
+import { isWorldInteractionHintDismissed } from "../lib/world-interaction-hint-storage"
 import { usePlanetStore } from "../stores/planet-store"
 import type { Island } from "../types/snapshot"
 
@@ -58,6 +60,7 @@ export function PlanetScene() {
     setIntroPhase,
     setPlanetInteracted,
     setCameraSettled,
+    setWorldExplorationStarted,
   } = usePlanetStore()
 
   // Reactive selectors for leaderboard focus
@@ -213,6 +216,25 @@ export function PlanetScene() {
     return () => controls.removeEventListener("start", onStart)
   // controlsRef.current is set synchronously before this effect runs (same render cycle).
   // Zustand setters (setSkipReveal, setIntroPhase, setPlanetInteracted) are stable references.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Dismiss interaction hint on first real navigation (pointer threshold / wheel / pinch)
+  useEffect(() => {
+    if (
+      isWorldInteractionHintDismissed() ||
+      usePlanetStore.getState().worldExplorationStarted
+    ) {
+      return
+    }
+
+    const controls = controlsRef.current
+    if (!controls?.domElement) return
+
+    return attachWorldInteractionDetection(controls.domElement, () => {
+      setWorldExplorationStarted(true)
+    })
+  // controlsRef.current is set synchronously before this effect runs (same render cycle).
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
