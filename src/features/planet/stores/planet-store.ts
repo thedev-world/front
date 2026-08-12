@@ -39,6 +39,9 @@ type PlanetStore = {
   /** True when the user starts dragging the planet (hides the territory connector line). */
   planetInteracted: boolean
   setPlanetInteracted: (v: boolean) => void
+  /** True once the user has explored the world (drag/zoom), dismisses the interaction hint. */
+  worldExplorationStarted: boolean
+  setWorldExplorationStarted: (v: boolean) => void
   /** True once the camera has finished lerping to the user's island. */
   cameraSettled: boolean
   setCameraSettled: (v: boolean) => void
@@ -72,6 +75,8 @@ export const usePlanetStore = create<PlanetStore>((set) => ({
   setMyTerritoryScreenPos: (myTerritoryScreenPos) => set({ myTerritoryScreenPos }),
   planetInteracted: false,
   setPlanetInteracted: (planetInteracted) => set({ planetInteracted }),
+  worldExplorationStarted: false,
+  setWorldExplorationStarted: (worldExplorationStarted) => set({ worldExplorationStarted }),
   cameraSettled: false,
   setCameraSettled: (cameraSettled) => set({ cameraSettled }),
   viewedGithubLogin: null,
