@@ -1,7 +1,8 @@
 "use client"
 
-import { ChevronDown, FileCode2, LogOut, User } from "lucide-react"
+import { ChevronDown, FileCode2, LogOut, Share2, User } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
 
 import { BadgeGlow } from "@/components/ui/badge-glow"
 import { HudReadoutShell } from "@/components/ui/hud-panel"
@@ -21,6 +22,7 @@ import {
   PLAYER_CLASS_FALLBACK,
   type PlayerClassSlug,
 } from "@/features/developer/lib/player-class"
+import { ShareProfileDialog } from "@/features/share/components/share-profile-dialog"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { BREAKPOINTS, mediaQuery } from "@/lib/breakpoints"
 import { cn } from "@/lib/utils"
@@ -31,6 +33,7 @@ type Props = {
 
 export function UserMenu({ user }: Props) {
   const logoutMutation = useLogout()
+  const [shareOpen, setShareOpen] = useState(false)
   const isMobile = useMediaQuery(mediaQuery.max(BREAKPOINTS.hudMobile))
   const slug = user.player_class.name.trim().toLowerCase() as PlayerClassSlug
   const badge = BADGE_BY_SLUG[slug] ?? PLAYER_CLASS_FALLBACK.badge
@@ -125,6 +128,11 @@ export function UserMenu({ user }: Props) {
           }
         />
 
+        <DropdownMenuItem onClick={() => setShareOpen(true)}>
+          <Share2 size={13} className="text-hi" />
+          Share on X
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator />
 
         <DropdownMenuDestructiveItem
@@ -135,6 +143,12 @@ export function UserMenu({ user }: Props) {
           Logout
         </DropdownMenuDestructiveItem>
       </DropdownMenuContent>
+
+      <ShareProfileDialog
+        user={user}
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+      />
     </DropdownMenu>
   )
 }

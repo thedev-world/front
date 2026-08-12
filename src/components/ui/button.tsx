@@ -5,7 +5,12 @@ import { HudReadoutShell } from "@/components/ui/hud-panel"
 import { cn } from "@/lib/utils"
 
 const buttonControlBase =
-  "group/button hud-readout-button-control relative overflow-hidden cursor-pointer inline-flex shrink-0 items-center justify-center rounded-sm border-0 font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:ring-2 focus-visible:ring-hi/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+  "group/button hud-readout-button-control relative overflow-hidden cursor-pointer items-center justify-center rounded-sm border-0 font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:ring-2 focus-visible:ring-hi/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+
+const buttonLayoutClasses = {
+  inline: "inline-flex shrink-0",
+  block: "flex w-full",
+} as const
 
 const buttonSizeClasses = {
   primary: {
@@ -30,7 +35,7 @@ const buttonSizeClasses = {
   },
 } as const
 
-const shellVariants = cva("hud-readout-button inline-flex", {
+const shellVariants = cva("hud-readout-button", {
   variants: {
     shell: {
       primary: "hud-readout-button--primary",
@@ -49,6 +54,8 @@ type ButtonSize = keyof typeof buttonSizeClasses.primary
 type ButtonProps = ButtonPrimitive.Props & {
   variant?: ButtonVariant
   size?: ButtonSize
+  /** Stretch button + HUD shell to the container width. */
+  fullWidth?: boolean
   /** Selection state — only for `variant="toggle"`. */
   selected?: boolean
   /** Muted label — `secondary` and unselected `toggle`. */
@@ -90,6 +97,7 @@ function resolveControlClasses(
 function Button({
   variant = "primary",
   size = "md",
+  fullWidth = false,
   selected = false,
   muted = false,
   shellClassName,
@@ -98,16 +106,24 @@ function Button({
   ...props
 }: ButtonProps) {
   const shell = resolveShell(variant, selected)
+  const layout = fullWidth ? buttonLayoutClasses.block : buttonLayoutClasses.inline
 
   return (
     <HudReadoutShell
-      className={cn(shellVariants({ shell }), shellClassName)}
+      className={cn(
+        shellVariants({ shell }),
+        layout,
+        fullWidth && "[&_.hud-readout-panel-border]:w-full",
+        shellClassName,
+      )}
+      innerClassName={fullWidth ? "w-full" : undefined}
     >
       <ButtonPrimitive
         data-slot="button"
         aria-pressed={variant === "toggle" ? selected : undefined}
         className={cn(
           buttonControlBase,
+          layout,
           resolveControlClasses(variant, size, selected, muted),
           className,
         )}
