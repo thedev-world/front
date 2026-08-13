@@ -87,6 +87,90 @@ function territoryColor(
   )
 }
 
+function hslDistance(a: THREE.Color, b: THREE.Color): number {
+  const ha = { h: 0, s: 0, l: 0 }
+  const hb = { h: 0, s: 0, l: 0 }
+  a.getHSL(ha)
+  b.getHSL(hb)
+  let dh = Math.abs(ha.h - hb.h)
+  dh = Math.min(dh, 1 - dh)
+  return dh * 2 + Math.abs(ha.s - hb.s) + Math.abs(ha.l - hb.l)
+}
+
+/** Greedy palette pick: maximize contrast with already-colored neighbours. */
+function assignTerritoryColors(
+  snapshot: PlanetSnapshot,
+  occupancy: Map<string, number>,
+): Map<number, THREE.Color> {
+  const adjacency = new Map<number, Set<number>>()
+  const link = (a: number, b: number) => {
+    if (a === b) return
+    if (!adjacency.has(a)) adjacency.set(a, new Set())
+    if (!adjacency.has(b)) adjacency.set(b, new Set())
+    adjacency.get(a)!.add(b)
+    adjacency.get(b)!.add(a)
+  }
+
+  snapshot.territories.forEach((t, tIdx) => {
+    t.cells.forEach((c) => {
+      for (const [dq, dr] of HEX_DIRECTIONS) {
+        const nT = occupancy.get(`${t.islandId}:${c.q + dq},${c.r + dr}`)
+        if (nT !== undefined && nT !== tIdx) link(tIdx, nT)
+      }
+    })
+  })
+
+  const strHash = (s: string) =>
+    [...s].reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 0)
+
+  const colorMap = new Map<number, THREE.Color>()
+  for (const island of snapshot.islands) {
+    const indices = snapshot.territories.flatMap((t, i) =>
+      t.islandId === island.id ? [i] : [],
+    )
+    const palette = indices.map((_, i) => territoryColor(island, i, indices.length))
+    // Sort by login hash, breaks the spatial pattern while
+    const sorted = [...indices].sort(
+      (a, b) =>
+        strHash(snapshot.territories[a].githubLogin) -
+        strHash(snapshot.territories[b].githubLogin),
+    )
+
+    for (const tIdx of sorted) {
+      const neighbors = adjacency.get(tIdx)
+      let bestSlot = 0
+      let bestScore = -1
+      for (let slot = 0; slot < palette.length; slot++) {
+        let minDist = Infinity
+        if (neighbors) {
+          for (const nIdx of neighbors) {
+            const assigned = colorMap.get(nIdx)
+            if (assigned) minDist = Math.min(minDist, hslDistance(palette[slot], assigned))
+          }
+        }
+        const score = minDist === Infinity ? 1 : minDist
+        if (score > bestScore || (score === bestScore && slot < bestSlot)) {
+          bestScore = score
+          bestSlot = slot
+        }
+      }
+      // Micro-jitter seeded by login: differentiates devs that land on the same
+      // palette slot (non-adjacent territories can share a slot with 75+ devs).
+      const lh = strHash(snapshot.territories[tIdx].githubLogin)
+      const jHue = ((lh & 0xff) / 255 - 0.5) * 0.03
+      const jLight = (((lh >> 8) & 0xff) / 255 - 0.5) * 0.04
+      const hsl = { h: 0, s: 0, l: 0 }
+      palette[bestSlot].getHSL(hsl)
+      colorMap.set(
+        tIdx,
+        new THREE.Color().setHSL((hsl.h + jHue + 1) % 1, hsl.s, clamp01(hsl.l + jLight)),
+      )
+    }
+  }
+
+  return colorMap
+}
+
 /**
  * Per-cell color variation around the dev base color — breaks up the flat fill
  * so the terrain feels alive (procedural "texture").
@@ -177,12 +261,6 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
 
   const islandMap = new Map(snapshot.islands.map((i) => [i.id, i]))
 
-  // Count devs per island for color variation
-  const devsPerIsland = new Map<string, number>()
-  snapshot.territories.forEach((t) => {
-    devsPerIsland.set(t.islandId, (devsPerIsland.get(t.islandId) || 0) + 1)
-  })
-
   // Territory occupancy: "islandId:q,r" → territory index (for coloring + borders)
   const occupancy = new Map<string, number>()
   // Island occupancy: any cell of the island present (for the coastline cliff)
@@ -193,6 +271,8 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
       islandOccupancy.add(`${t.islandId}:${c.q},${c.r}`)
     })
   })
+
+  const territoryColors = assignTerritoryColors(snapshot, occupancy)
 
   // Count totals for buffer allocation
   const totalCells = snapshot.territories.reduce((s, t) => s + t.cells.length, 0)
@@ -274,8 +354,6 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
     faceToTerritory[fIdx++] = tIdx
   }
 
-  const islandCounters = new Map<string, number>()
-
   snapshot.territories.forEach((territory, tIdx) => {
     const island = islandMap.get(territory.islandId)
     if (!island) {
@@ -284,16 +362,11 @@ export function buildTerritoryMesh(snapshot: PlanetSnapshot): TerritoryMeshData 
       return
     }
 
-    // Track dev index within island for color variation
-    const currentIdx = islandCounters.get(territory.islandId) || 0
-    islandCounters.set(territory.islandId, currentIdx + 1)
-
     const [phi, theta] = island.anchor
     _anchor.setFromSpherical(new THREE.Spherical(planetRadius, phi, theta))
     const { right, up } = islandTangentFrame(phi, theta)
 
-    const totalInIsland = devsPerIsland.get(territory.islandId) || 1
-    const devColor = territoryColor(island, currentIdx, totalInIsland)
+    const devColor = territoryColors.get(tIdx)!
 
     const faceStart = fIdx
     const borderStart = bIdx
