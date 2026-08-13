@@ -33,8 +33,7 @@ describe("buildPlanetSnapshot — territory growth", () => {
     ]
     const snapshot = buildPlanetSnapshot(makeFrontendIsland(devs))
     for (const t of snapshot.territories) {
-      // cells.length >= cellCount (hole-fill may add bonus cells)
-      expect(t.cells.length).toBeGreaterThanOrEqual(t.cellCount)
+      expect(t.cells.length).toBe(t.cellCount)
     }
   })
 
@@ -45,7 +44,7 @@ describe("buildPlanetSnapshot — territory growth", () => {
     ])
     const snapshot = buildPlanetSnapshot(makeFrontendIsland(devs))
     for (const t of snapshot.territories) {
-      expect(t.cells.length).toBeGreaterThanOrEqual(t.cellCount)
+      expect(t.cells.length).toBe(t.cellCount)
     }
   })
 
@@ -95,7 +94,7 @@ describe("buildPlanetSnapshot — territory growth", () => {
 
     expect(snapshot.territories.length).toBe(260)
     for (const t of snapshot.territories) {
-      expect(t.cells.length).toBeGreaterThanOrEqual(t.cellCount)
+      expect(t.cells.length).toBe(t.cellCount)
     }
   })
 
