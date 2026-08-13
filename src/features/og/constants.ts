@@ -8,8 +8,8 @@ export const HUD_PANEL_FILL =
 
 export const OG_PANEL_MARGIN = 28
 export const OG_PANEL_W = OG_CARD_WIDTH - OG_PANEL_MARGIN * 2
-export const OG_PANEL_H = 128
-export const OG_PANEL_PAD_Y = 20
+export const OG_PANEL_H = 168
+export const OG_PANEL_PAD_Y = 24
 export const OG_PANEL_PAD_X = 30
 export const OG_CHAMFER = 14
 

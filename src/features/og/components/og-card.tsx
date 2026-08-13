@@ -19,6 +19,9 @@ import { OgBranding } from "./og-branding"
 import { OgStat } from "./og-stat"
 import { OgXpBar } from "./og-xp-bar"
 
+const AVATAR_SIZE = 88
+const AVATAR_RING = 2
+
 /* eslint-disable @next/next/no-img-element -- Satori (next/og ImageResponse) only supports native <img>, not next/image */
 export function OgCard({ data, planetImageSrc }: OgImageProps) {
   const {
@@ -41,7 +44,7 @@ export function OgCard({ data, planetImageSrc }: OgImageProps) {
         height: OG_CARD_HEIGHT,
         background: "#08060f",
         position: "relative",
-        fontFamily: "sans-serif",
+        fontFamily: "Geist",
         overflow: "hidden",
       }}
     >
@@ -87,9 +90,9 @@ export function OgCard({ data, planetImageSrc }: OgImageProps) {
           top: 0,
           left: 0,
           width: OG_CARD_WIDTH,
-          height: 240,
+          height: 260,
           background:
-            "linear-gradient(to bottom, rgba(8,6,15,0.88) 0%, rgba(8,6,15,0.35) 70%, transparent 100%)",
+            "linear-gradient(to bottom, rgba(8,6,15,0.92) 0%, rgba(8,6,15,0.45) 70%, transparent 100%)",
         }}
       />
 
@@ -126,34 +129,74 @@ export function OgCard({ data, planetImageSrc }: OgImageProps) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center" }}>
-          {avatarUrl !== null ? (
-            <img
-              src={avatarUrl}
-              alt={`${login} avatar`}
-              width={78}
-              height={78}
-              style={{ clipPath: ogChamferClip(78, 78, 9), marginRight: 20 }}
-            />
-          ) : (
+          <div
+            style={{
+              display: "flex",
+              position: "relative",
+              width: AVATAR_SIZE + AVATAR_RING * 2,
+              height: AVATAR_SIZE + AVATAR_RING * 2,
+              marginRight: 22,
+            }}
+          >
             <div
               style={{
                 display: "flex",
-                width: 78,
-                height: 78,
-                clipPath: ogChamferClip(78, 78, 9),
-                background: "rgba(169,159,224,0.2)",
-                marginRight: 20,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: AVATAR_SIZE + AVATAR_RING * 2,
+                height: AVATAR_SIZE + AVATAR_RING * 2,
+                borderRadius: "50%",
+                background: HUD_BORDER_GRADIENT,
               }}
             />
-          )}
+            <div
+              style={{
+                display: "flex",
+                position: "absolute",
+                top: AVATAR_RING,
+                left: AVATAR_RING,
+                width: AVATAR_SIZE,
+                height: AVATAR_SIZE,
+                borderRadius: "50%",
+                overflow: "hidden",
+                background: "rgba(169,159,224,0.2)",
+              }}
+            >
+              {avatarUrl !== null ? (
+                <img
+                  src={avatarUrl}
+                  alt={`${login} avatar`}
+                  width={AVATAR_SIZE}
+                  height={AVATAR_SIZE}
+                  style={{ objectFit: "cover" }}
+                />
+              ) : null}
+            </div>
+          </div>
+
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ color: "#ffffff", fontSize: 28, fontWeight: 700, lineHeight: 1 }}>
+            <span
+              style={{
+                color: "#ffffff",
+                fontSize: 32,
+                fontWeight: 700,
+                lineHeight: 1,
+              }}
+            >
               @{login}
             </span>
-            <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 15, marginTop: 6 }}>
-              {className} · {islandLabel} Island
+            <span
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontSize: 24,
+                fontWeight: 700,
+                marginTop: 8,
+              }}
+            >
+              {className} on {islandLabel} Island
             </span>
-            <OgXpBar percent={xpPercent} level={level} />
+            {/* <OgXpBar percent={xpPercent} level={level} width={200} /> */}
           </div>
         </div>
 
