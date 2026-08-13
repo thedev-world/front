@@ -10,10 +10,10 @@ function Separator() {
       style={{
         display: "flex",
         width: 1,
-        height: 48,
+        height: 64,
         background: "rgba(169,159,224,0.22)",
-        marginLeft: 32,
-        marginRight: 32,
+        marginLeft: 36,
+        marginRight: 36,
       }}
     />
   )
@@ -26,14 +26,26 @@ export function OgStat({ value, label, displaySeparator = true }: Props) {
     <div style={{ display: "flex", alignItems: "center" }}>
       {displaySeparator ? <Separator /> : null}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ color: "#ffffff", fontSize: 32, fontWeight: 700, lineHeight: 1 }}>{value}</span>
         <span
           style={{
-            color: "rgba(255,255,255,0.4)",
-            fontSize: 12,
+            color: "#ffffff",
+            fontSize: 52,
+            fontWeight: 700,
+            lineHeight: 1,
+            fontFamily: "Geist",
+          }}
+        >
+          {value}
+        </span>
+        <span
+          style={{
+            color: "rgba(255,255,255,0.55)",
+            fontSize: 32,
+            fontWeight: 700,
             textTransform: "uppercase",
-            letterSpacing: "1.5px",
-            marginTop: 5,
+            letterSpacing: "1.6px",
+            marginTop: 8,
+            fontFamily: "Geist",
           }}
         >
           {label}

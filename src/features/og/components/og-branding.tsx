@@ -1,7 +1,7 @@
 import { HUD_BORDER_GRADIENT, OG_CARD_HEIGHT, OG_CARD_WIDTH, ogChamferClip } from "../constants"
 
-const BADGE_W = 260
-const BADGE_H = 70
+const BADGE_W = 240
+const BADGE_H = 50
 const CHAMFER = 8
 const INSET = 1
 
@@ -47,10 +47,7 @@ export function OgBranding() {
           background: "rgba(13,11,28,0.94)",
         }}
       >
-        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, letterSpacing: "0.3px" }}>
-          Claim your developer territory on
-        </span>
-        <span style={{ color: "#e3e1f8", fontSize: 17, fontWeight: 700, letterSpacing: "0.4px", marginTop: 2 }}>
+        <span style={{ color: "#e3e1f8", fontSize: 32, fontWeight: 700, letterSpacing: "0.4px", marginTop: 2 }}>
           thedev.world
         </span>
       </div>

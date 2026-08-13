@@ -24,7 +24,7 @@ export function OgXpBar({ percent, level, width = 176 }: Props) {
       >
         <div style={{ display: "flex", width: fillW, height: 7, background: XP_FILL }} />
       </div>
-      <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 6 }}>
+      <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, marginTop: 6, fontFamily: "Geist", fontWeight: 700 }}>
         {Math.round(clamped)}% to lvl {level + 1}
       </span>
     </div>
