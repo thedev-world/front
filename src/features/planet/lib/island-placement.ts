@@ -139,53 +139,6 @@ function growTerritories(
     })
   }
 
-  // Post-processing: fill interior holes (cells surrounded on 5-6 sides)
-  // Assign them to the neighboring territory with the most adjacent cells
-  const cellOwner = new Map<string, number>()
-  territories.forEach((t, idx) => {
-    t.cells.forEach((c) => cellOwner.set(hexKey(c.q, c.r), idx))
-  })
-
-  let changed = true
-  while (changed) {
-    changed = false
-    for (const key of massFrontier) {
-      if (occupied.has(key)) continue
-      const [q, r] = key.split(",").map(Number)
-      let occupiedCount = 0
-      const neighborOwners = new Map<number, number>()
-      for (const [dq, dr] of HEX_DIRECTIONS) {
-        const nKey = hexKey(q + dq, r + dr)
-        if (occupied.has(nKey)) {
-          occupiedCount++
-          const owner = cellOwner.get(nKey)
-          if (owner !== undefined) {
-            neighborOwners.set(owner, (neighborOwners.get(owner) || 0) + 1)
-          }
-        }
-      }
-      // Only fill if surrounded on 5+ sides
-      if (occupiedCount >= 5 && neighborOwners.size > 0) {
-        let bestOwner = 0
-        let bestCount = 0
-        for (const [owner, count] of neighborOwners) {
-          if (count > bestCount) { bestCount = count; bestOwner = owner }
-        }
-        const cell: HexCell = { q, r }
-        territories[bestOwner].cells.push(cell)
-        cellOwner.set(key, bestOwner)
-        occupied.add(key)
-        massFrontier.delete(key)
-        // Update frontier
-        for (const [dq, dr] of HEX_DIRECTIONS) {
-          const nKey = hexKey(q + dq, r + dr)
-          if (!occupied.has(nKey)) massFrontier.add(nKey)
-        }
-        changed = true
-      }
-    }
-  }
-
   return { territories, totalCells: occupied.size }
 }
 
@@ -298,13 +251,32 @@ function bfsGrow(
   const recentCells: string[] = [hexKey(seed.q, seed.r)]
   const RECENT_WINDOW = 6
 
+  // Detect a frontier cell that is already nearly enclosed (5+ of its 6 sides
+  // are occupied or in this territory). Filling it immediately prevents an
+  // interior hole from forming — without changing the total cell count.
+  const findEnclosedFrontier = (): string | null => {
+    for (const [key, entry] of frontierMap) {
+      let sealed = 0
+      for (const [dq, dr] of HEX_DIRECTIONS) {
+        const nKey = hexKey(entry.q + dq, entry.r + dr)
+        if (occupied.has(nKey) || inTerritory.has(nKey)) sealed++
+      }
+      if (sealed >= 5) return key
+    }
+    return null
+  }
+
   while (cells.length < count && frontierMap.size > 0) {
     // DLA-like growth: prefer frontier cells adjacent to RECENT additions
     // This creates directional branching instead of radial hexagonal blobs
     const chaos = rng()
     let pickKey: string
 
-    if (chaos < 0.62) {
+    const enclosedKey = findEnclosedFrontier()
+    if (enclosedKey !== null) {
+      // Gap-first: seal near-enclosed cells before they become holes
+      pickKey = enclosedKey
+    } else if (chaos < 0.62) {
       // Compact fill — prefer cells with most territory neighbors (fills gaps)
       let maxNeighbors = 0
       for (const entry of frontierMap.values()) {
