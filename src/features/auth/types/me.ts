@@ -17,6 +17,7 @@ export type MeProfile = {
   commits_alltime: number;
   prs_contributions_alltime: number;
   reviews_alltime: number;
+  private_contributions_alltime: number;
   forks_received: number;
   followers: number;
   stars_received_raw: number;

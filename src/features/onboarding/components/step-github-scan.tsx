@@ -7,6 +7,7 @@ import {
   GitFork,
   GitPullRequest,
   Loader2,
+  Lock,
   MessageSquare,
   Star,
   Users,
@@ -30,13 +31,14 @@ type StatDef = {
 };
 
 const GITHUB_STATS: StatDef[] = [
-  { label: "Commits",      icon: GitCommit,      getValue: (p) => p.commits_alltime },
-  { label: "Pull Requests",icon: GitPullRequest, getValue: (p) => p.prs_contributions_alltime },
-  { label: "Reviews",      icon: MessageSquare,  getValue: (p) => p.reviews_alltime },
-  { label: "Stars",        icon: Star,           getValue: (p) => p.stars_received_capped },
-  { label: "Followers",    icon: Users,          getValue: (p) => p.followers },
-  { label: "Forks",        icon: GitFork,        getValue: (p) => p.forks_received },
-  { label: "Repos",        icon: Box,            getValue: (p) => p.owned_non_fork_repos_count },
+  { label: "Commits",         icon: GitCommit,     getValue: (p) => p.commits_alltime },
+  { label: "Pull Requests",   icon: GitPullRequest,getValue: (p) => p.prs_contributions_alltime },
+  { label: "Reviews",         icon: MessageSquare, getValue: (p) => p.reviews_alltime },
+  { label: "Private activity",icon: Lock,          getValue: (p) => p.private_contributions_alltime },
+  { label: "Stars",           icon: Star,          getValue: (p) => p.stars_received_capped },
+  { label: "Followers",       icon: Users,         getValue: (p) => p.followers },
+  { label: "Forks",           icon: GitFork,       getValue: (p) => p.forks_received },
+  { label: "Repos",           icon: Box,           getValue: (p) => p.owned_non_fork_repos_count },
 ];
 
 export const SCAN_SEQUENCE_MS =

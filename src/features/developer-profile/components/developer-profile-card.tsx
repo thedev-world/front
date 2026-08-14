@@ -7,6 +7,7 @@ import {
   GitPullRequest,
   Globe,
   Hexagon,
+  Lock,
   MapPin,
   MessageSquare,
   Star,
@@ -143,10 +144,11 @@ function ProfileContent({
           <StatItem icon={<GitCommit />} label="Commits" value={data.commits_alltime} animate />
           <StatItem icon={<GitPullRequest />} label="Pull Requests" value={data.prs_contributions_alltime} animate delay={40} />
           <StatItem icon={<MessageSquare />} label="Reviews" value={data.reviews_alltime} animate delay={80} />
-          <StatItem icon={<Star />} label="Stars" value={data.stars_received_capped} animate delay={120} />
-          <StatItem icon={<Users />} label="Followers" value={data.followers} animate delay={160} />
-          <StatItem icon={<GitFork />} label="Forks" value={data.forks_received} animate delay={200} />
-          <StatItem icon={<Box />} label="Repos" value={data.owned_non_fork_repos_count} animate delay={240} />
+          <StatItem icon={<Lock />} label="Private activity" value={data.private_contributions_alltime} animate delay={120} />
+          <StatItem icon={<Star />} label="Stars" value={data.stars_received_capped} animate delay={160} />
+          <StatItem icon={<Users />} label="Followers" value={data.followers} animate delay={200} />
+          <StatItem icon={<GitFork />} label="Forks" value={data.forks_received} animate delay={240} />
+          <StatItem icon={<Box />} label="Repos" value={data.owned_non_fork_repos_count} animate delay={280} />
         </div>
       </div>
     </>
