@@ -6,6 +6,7 @@ import {
   GitFork,
   GitPullRequest,
   Hexagon,
+  Lock,
   MessageSquare,
   Star,
   Users,
@@ -127,10 +128,11 @@ export function CellsShowcase({ profile }: Props) {
               <StatItem icon={<GitCommit />} label="Commits" value={profile.commits_alltime} animate delay={0} />
               <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} animate delay={40} />
               <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} animate delay={80} />
-              <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} animate delay={120} />
-              <StatItem icon={<Users />} label="Followers" value={profile.followers} animate delay={160} />
-              <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} animate delay={200} />
-              <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} animate delay={240} />
+              <StatItem icon={<Lock />} label="PV activity" value={profile.private_contributions_alltime} animate delay={120} />
+              <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} animate delay={160} />
+              <StatItem icon={<Users />} label="Followers" value={profile.followers} animate delay={200} />
+              <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} animate delay={240} />
+              <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} animate delay={280} />
             </div>
           </div>
 
