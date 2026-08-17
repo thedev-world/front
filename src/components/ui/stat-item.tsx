@@ -64,7 +64,7 @@ export function StatItem({
           </span>
         ) : null}
       </span>
-      {badge ? <div className="mt-1">{badge}</div> : null}
+      {badge && <div className="mt-1">{badge}</div>}
     </div>
   )
 }
