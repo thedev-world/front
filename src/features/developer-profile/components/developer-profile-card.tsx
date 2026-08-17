@@ -11,6 +11,7 @@ import {
   MapPin,
   MessageSquare,
   Star,
+  TriangleAlert,
   Users,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -31,6 +32,7 @@ import {
 } from "@/features/developer/lib/player-class"
 import type { DeveloperPublicProfile } from "@/features/developer/types/developer-public"
 import { getIslandLabel } from "@/features/onboarding/lib/island-image"
+import { CommitFarmAlert } from "@/features/profile/components/commit-farm-alert"
 import { cn } from "@/lib/utils"
 
 import {
@@ -79,6 +81,7 @@ function ProfileContent({
   const slug = data.player_class.name.trim().toLowerCase() as PlayerClassSlug
   const badge = BADGE_BY_SLUG[slug] ?? PLAYER_CLASS_FALLBACK.badge
   const islandLabel = getIslandLabel(data.island)
+  const isFarmed = data.commits_farm_flagged && !data.commits_farm_cleared
 
   return (
     <>
@@ -140,8 +143,23 @@ function ProfileContent({
         <h3 className="ticker text-[10px] uppercase tracking-[0.24em] text-zinc-500">
           GitHub stats
         </h3>
+        {isFarmed && <CommitFarmAlert size="compact" />}
         <div className="grid grid-cols-2 gap-2">
-          <StatItem icon={<GitCommit />} label="Commits" value={data.commits_alltime} animate />
+          <StatItem
+            icon={<GitCommit />}
+            label="Commits"
+            value={data.commits_alltime}
+            animate
+            badge={
+              isFarmed ? (
+                <Tag
+                  label="Flagged activity"
+                  icon={<TriangleAlert size={10} className="shrink-0 text-amber-400/70" strokeWidth={1.5} />}
+                  variant="warning"
+                />
+              ) : undefined
+            }
+          />
           <StatItem icon={<GitPullRequest />} label="Pull Requests" value={data.prs_contributions_alltime} animate delay={40} />
           <StatItem icon={<MessageSquare />} label="Reviews" value={data.reviews_alltime} animate delay={80} />
           <StatItem icon={<Lock />} label="Private activity" value={data.private_contributions_alltime} animate delay={120} />

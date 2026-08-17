@@ -9,6 +9,7 @@ import {
   Lock,
   MessageSquare,
   Star,
+  TriangleAlert,
   Users,
 } from "lucide-react";
 import { BadgeGlow } from "@/components/ui/badge-glow";
@@ -17,6 +18,7 @@ import { StatItem } from "@/components/ui/stat-item";
 import type { MeProfile } from "@/features/auth/types/me";
 import { getIslandImagePath, getIslandLabel } from "@/features/onboarding/lib/island-image";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
+import { CommitFarmAlert } from "@/features/profile/components/commit-farm-alert";
 
 type Props = { profile: MeProfile };
 
@@ -24,13 +26,16 @@ export function CellsShowcase({ profile }: Props) {
   const cellsDisplay = useCountUp(profile.cell_count, { duration: 2000, delay: 150 });
   const islandSrc = getIslandImagePath(profile.island);
   const islandLabel = getIslandLabel(profile.island);
+  const isFarmed = profile.commits_farm_flagged && !profile.commits_farm_cleared;
 
   return (
     <section
-      className="relative anim-reveal-up"
+      className="relative anim-reveal-up flex flex-col gap-4"
       style={{ animationDelay: "100ms" }}
       aria-labelledby="cells-heading"
     >
+      {isFarmed && <CommitFarmAlert size="full" />}
+
       <div className="relative overflow-hidden border border-white/[0.08] bg-white/[0.02]">
 
         {/* Ambient glow */}
@@ -125,7 +130,22 @@ export function CellsShowcase({ profile }: Props) {
               Stats
             </h3>
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-              <StatItem icon={<GitCommit />} label="Commits" value={profile.commits_alltime} animate delay={0} />
+              <StatItem
+                icon={<GitCommit />}
+                label="Commits"
+                value={profile.commits_alltime}
+                animate
+                delay={0}
+                badge={
+                  isFarmed ? (
+                    <Tag
+                      label="Flagged activity"
+                      icon={<TriangleAlert size={10} className="shrink-0 text-amber-400/70" strokeWidth={1.5} />}
+                      variant="warning"
+                    />
+                  ) : undefined
+                }
+              />
               <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} animate delay={40} />
               <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} animate delay={80} />
               <StatItem icon={<Lock />} label="PV activity" value={profile.private_contributions_alltime} animate delay={120} />
