@@ -1,213 +1,227 @@
-// Card component for the Open Graph image. This is rendered by Satori (next/og) to generate the OG image.
-// No tailwindcss or next/image is used here, as Satori does not support them. All styles are inline and all images are native <img> elements.
+// Satori-compatible OG card for user profiles — stats-first, no planet capture.
 
+import type { ReactNode } from "react"
+
+import { HUD_BORDER_GRADIENT, OG_CARD_HEIGHT, OG_CARD_WIDTH } from "../constants"
+import { formatOgNumber } from "../lib/format-number"
+import type { OgCardData, OgGithubStat, OgImageProps } from "../types"
+import { OgBrandingHeader } from "./shared/og-branding-header"
 import {
-  HUD_BORDER_GRADIENT,
-  HUD_PANEL_FILL,
-  OG_CARD_HEIGHT,
-  OG_CARD_WIDTH,
-  OG_CHAMFER,
-  OG_PANEL_H,
-  OG_PANEL_MARGIN,
-  OG_PANEL_PAD_X,
-  OG_PANEL_PAD_Y,
-  OG_PANEL_W,
-  ogChamferClip,
-} from "../constants"
-import type { OgImageProps } from "../types"
-import { OgBranding } from "./og-branding"
-import { OgStat } from "./og-stat"
-import { OgXpBar } from "./og-xp-bar"
+  OgIconCommit,
+  OgIconLock,
+  OgIconPullRequest,
+  OgIconReview,
+  OgIconStar,
+} from "./shared/og-icons"
 
-const AVATAR_SIZE = 88
-const AVATAR_RING = 2
+const PAD = 44
+const TILE_GAP = 10
 
-/* eslint-disable @next/next/no-img-element -- Satori (next/og ImageResponse) only supports native <img>, not next/image */
-export function OgCard({ data, planetImageSrc }: OgImageProps) {
-  const {
-    login,
-    avatarUrl,
-    islandLabel,
-    level,
-    xpPercent,
-    cellCount,
-    className,
-    islandRank,
-    globalRank,
-  } = data
+const HEADER_H = 46
+const HEADER_GAP = 24
+const FOOTER_H = 46
+const STATS_H = OG_CARD_HEIGHT - PAD * 2 - HEADER_H - HEADER_GAP - FOOTER_H
+
+const STAT_BORDER = "rgba(255,255,255,0.07)"
+const STAT_BG = "rgba(255,255,255,0.02)"
+const LABEL_COLOR = "rgba(255,255,255,0.38)"
+const VALUE_COLOR = "rgba(255,255,255,0.9)"
+const STAT_ICON_SIZE = 32
+
+function githubStatsFromData(data: OgCardData): OgGithubStat[] {
+  const candidates: OgGithubStat[] = [
+    { value: data.commitsAlltime, label: "Commits", icon: "commit" },
+    { value: data.prsContributionsAlltime, label: "PRs", icon: "pr" },
+    { value: data.reviewsAlltime, label: "Reviews", icon: "review" },
+    { value: data.privateContributionsAlltime, label: "PV activity", icon: "private" },
+    { value: data.starsReceivedCapped, label: "Stars", icon: "star" },
+  ]
+  return candidates.filter((s) => s.value > 0)
+}
+
+/** Pick column count so tiles stay large — max 5 stats (commits, PRs, reviews, PV, stars). */
+function gridCols(count: number): number {
+  if (count <= 1) return 1
+  if (count === 2) return 2
+  if (count === 3) return 3
+  if (count === 4) return 2
+  return 3 // 5 stats → 3 + 2
+}
+
+function tileWidth(cols: number): number {
+  return (OG_CARD_WIDTH - PAD * 2 - TILE_GAP * (cols - 1)) / cols
+}
+
+function statIcon(type: OgGithubStat["icon"]): ReactNode {
+  switch (type) {
+    case "commit":  return <OgIconCommit size={STAT_ICON_SIZE} />
+    case "pr":      return <OgIconPullRequest size={STAT_ICON_SIZE} />
+    case "review":  return <OgIconReview size={STAT_ICON_SIZE} />
+    case "private": return <OgIconLock size={STAT_ICON_SIZE} />
+    case "star":    return <OgIconStar size={STAT_ICON_SIZE} />
+  }
+}
+
+function StatTile({
+  stat,
+  height,
+  width,
+}: {
+  stat: OgGithubStat
+  height: number
+  width: number
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        width,
+        height,
+        border: `1px solid ${STAT_BORDER}`,
+        background: STAT_BG,
+        paddingTop: 22,
+        paddingBottom: 22,
+        paddingLeft: 24,
+        paddingRight: 24,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ display: "flex", color: LABEL_COLOR }}>{statIcon(stat.icon)}</span>
+        <span
+          style={{
+            color: LABEL_COLOR,
+            fontSize: 24,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+          }}
+        >
+          {stat.label}
+        </span>
+      </div>
+      <span
+        style={{
+          color: VALUE_COLOR,
+          fontSize: 64,
+          fontWeight: 600,
+          lineHeight: 1,
+          letterSpacing: "-1px",
+        }}
+      >
+        {formatOgNumber(stat.value)}
+      </span>
+    </div>
+  )
+}
+
+function footerText(data: OgCardData): string {
+  const rankParts: string[] = []
+  if (data.islandRank > 0) rankParts.push(`TOP #${data.islandRank} on ${data.islandLabel} Island`)
+  if (data.globalRank > 0) rankParts.push(`TOP #${data.globalRank} globally`)
+  const cellsLabel = `${formatOgNumber(data.cellCount)} cells`
+  if (rankParts.length === 0) return cellsLabel
+  return `${rankParts.join(" and ")} (${cellsLabel})`
+}
+
+export function OgCard({ data, appleIconSrc }: OgImageProps) {
+  const githubStats = githubStatsFromData(data)
+  const cols = gridCols(githubStats.length)
+  const tileW = tileWidth(cols)
+  const numRows = Math.ceil(githubStats.length / cols)
+  const tileH = numRows > 0
+    ? Math.floor((STATS_H - TILE_GAP * (numRows - 1)) / numRows)
+    : STATS_H
 
   return (
     <div
       style={{
         display: "flex",
+        flexDirection: "column",
         width: OG_CARD_WIDTH,
         height: OG_CARD_HEIGHT,
-        background: "#08060f",
+        background: "#07060f",
         position: "relative",
         fontFamily: "Geist",
         overflow: "hidden",
+        paddingTop: PAD,
+        paddingBottom: PAD,
+        paddingLeft: PAD,
+        paddingRight: PAD,
       }}
     >
-      {planetImageSrc !== null ? (
-        <img
-          src={planetImageSrc}
-          alt="Planet capture"
-          width={OG_CARD_WIDTH}
-          height={OG_CARD_HEIGHT}
-          style={{ position: "absolute", top: 0, left: 0 }}
-        />
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: OG_CARD_WIDTH,
-            height: OG_CARD_HEIGHT,
-            background: "linear-gradient(160deg, #0e0d1e 0%, #08060f 55%, #0a0a1a 100%)",
-          }}
-        >
-          <span
-            style={{
-              color: "rgba(255,255,255,0.25)",
-              fontSize: 15,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-            }}
-          >
-            Territory capture in progress...
-          </span>
-        </div>
-      )}
 
-      <div
-        style={{
-          display: "flex",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: OG_CARD_WIDTH,
-          height: 260,
-          background:
-            "linear-gradient(to bottom, rgba(8,6,15,0.92) 0%, rgba(8,6,15,0.45) 70%, transparent 100%)",
-        }}
-      />
-
-      {/* HUD border layer */}
-      <div
-        style={{
-          display: "flex",
-          position: "absolute",
-          top: OG_PANEL_MARGIN,
-          left: OG_PANEL_MARGIN,
-          width: OG_PANEL_W,
-          height: OG_PANEL_H,
-          clipPath: ogChamferClip(OG_PANEL_W, OG_PANEL_H, OG_CHAMFER),
-          background: HUD_BORDER_GRADIENT,
-        }}
-      />
-      {/* HUD panel fill */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          position: "absolute",
-          top: OG_PANEL_MARGIN + 1,
-          left: OG_PANEL_MARGIN + 1,
-          width: OG_PANEL_W - 2,
-          height: OG_PANEL_H - 2,
-          clipPath: ogChamferClip(OG_PANEL_W - 2, OG_PANEL_H - 2, OG_CHAMFER - 1),
-          background: HUD_PANEL_FILL,
-          paddingTop: OG_PANEL_PAD_Y,
-          paddingBottom: OG_PANEL_PAD_Y,
-          paddingLeft: OG_PANEL_PAD_X,
-          paddingRight: OG_PANEL_PAD_X,
+          height: HEADER_H,
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div
+        <OgBrandingHeader appleIconSrc={appleIconSrc} />
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span style={{ color: "#ffffff", fontSize: 26, fontWeight: 700, lineHeight: 1 }}>
+            @{data.login}
+          </span>
+          <span
             style={{
-              display: "flex",
-              position: "relative",
-              width: AVATAR_SIZE + AVATAR_RING * 2,
-              height: AVATAR_SIZE + AVATAR_RING * 2,
-              marginRight: 22,
+              color: "rgba(255,255,255,0.38)",
+              fontSize: 15,
+              fontWeight: 600,
+              marginTop: 5,
+              letterSpacing: "0.3px",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: AVATAR_SIZE + AVATAR_RING * 2,
-                height: AVATAR_SIZE + AVATAR_RING * 2,
-                borderRadius: "50%",
-                background: HUD_BORDER_GRADIENT,
-              }}
-            />
-            <div
-              style={{
-                display: "flex",
-                position: "absolute",
-                top: AVATAR_RING,
-                left: AVATAR_RING,
-                width: AVATAR_SIZE,
-                height: AVATAR_SIZE,
-                borderRadius: "50%",
-                overflow: "hidden",
-                background: "rgba(169,159,224,0.2)",
-              }}
-            >
-              {avatarUrl !== null ? (
-                <img
-                  src={avatarUrl}
-                  alt={`${login} avatar`}
-                  width={AVATAR_SIZE}
-                  height={AVATAR_SIZE}
-                  style={{ objectFit: "cover" }}
-                />
-              ) : null}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span
-              style={{
-                color: "#ffffff",
-                fontSize: 32,
-                fontWeight: 700,
-                lineHeight: 1,
-              }}
-            >
-              @{login}
-            </span>
-            <span
-              style={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: 24,
-                fontWeight: 700,
-                marginTop: 8,
-              }}
-            >
-              {className} on {islandLabel} Island
-            </span>
-            {/* <OgXpBar percent={xpPercent} level={level} width={200} /> */}
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <OgStat value={String(cellCount)} label="Cells" displaySeparator={false} />
-          <OgStat value={islandRank > 0 ? `#${islandRank}` : null} label="Island" />
-          <OgStat value={globalRank > 0 ? `#${globalRank}` : null} label="Global" />
+            {data.className} on {data.islandLabel} Island
+          </span>
         </div>
       </div>
 
-      <OgBranding />
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          position: "relative",
+          zIndex: 1,
+          marginTop: HEADER_GAP,
+          gap: TILE_GAP,
+        }}
+      >
+        {githubStats.map((stat) => (
+          <StatTile key={stat.label} stat={stat} height={tileH} width={tileW} />
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          zIndex: 1,
+          height: FOOTER_H,
+          borderTop: `1px solid ${STAT_BORDER}`,
+          marginTop: "auto",
+        }}
+      >
+        <span
+          style={{
+            background: HUD_BORDER_GRADIENT,
+            backgroundClip: "text",
+            color: "transparent",
+            fontSize: 21,
+            fontWeight: 700,
+            letterSpacing: "0.3px",
+            marginTop: 42,
+          }}
+        >
+          {footerText(data)}
+        </span>
+      </div>
     </div>
   )
 }
