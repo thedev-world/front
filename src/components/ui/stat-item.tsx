@@ -13,6 +13,8 @@ type Props = {
   value: number | string
   /** Optional trailing fragment, e.g. `/ 42`. */
   suffix?: string
+  /** Optional badge rendered below the value. */
+  badge?: ReactNode
   /** Count-up animation when `value` is a number. */
   animate?: boolean
   delay?: number
@@ -27,6 +29,7 @@ export function StatItem({
   label,
   value,
   suffix,
+  badge,
   animate = false,
   delay = 0,
   className,
@@ -61,6 +64,7 @@ export function StatItem({
           </span>
         ) : null}
       </span>
+      {badge ? <div className="mt-1">{badge}</div> : null}
     </div>
   )
 }

@@ -15,6 +15,9 @@ export type MeProfile = {
   github_id: number;
   github_login: string;
   commits_alltime: number;
+  commits_breakdown_sum: number;
+  commits_farm_flagged: boolean;
+  commits_farm_cleared: boolean;
   prs_contributions_alltime: number;
   reviews_alltime: number;
   private_contributions_alltime: number;
