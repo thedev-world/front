@@ -23,7 +23,7 @@ export function ReadmeEditorPane({
       onScroll={onScroll}
       spellCheck={false}
       aria-label="Markdown source"
-      className="size-full min-h-0 resize-none overflow-auto bg-[#0d1117] p-4 font-mono text-[13px] leading-relaxed text-zinc-200 outline-none placeholder:text-zinc-600"
+      className="size-full min-h-0 resize-none overflow-auto bg-[#161b22] p-4 font-mono text-[13px] leading-relaxed text-zinc-200 outline-none placeholder:text-zinc-600"
     />
   );
 }

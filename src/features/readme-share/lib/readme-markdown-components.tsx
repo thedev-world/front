@@ -31,7 +31,7 @@ export const readmeMarkdownComponents: Components = {
     const isBlock = className?.includes("language-");
     if (isBlock) {
       return (
-        <pre className="mb-4 overflow-x-auto rounded-md border border-white/10 bg-[#0d1117] p-4">
+        <pre className="mb-4 overflow-x-auto rounded-md border border-white/10 bg-[#161b22] p-4">
           <code className="font-mono text-[13px] text-zinc-200">{children}</code>
         </pre>
       );
@@ -57,7 +57,7 @@ export const readmeMarkdownComponents: Components = {
     <img
       src={src}
       alt={alt ?? ""}
-      className="my-2 max-w-full rounded-sm border border-white/10"
+      className="my-2 max-w-full"
     />
   ),
   hr: () => <hr className="my-6 border-white/10" />,

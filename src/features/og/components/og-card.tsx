@@ -141,14 +141,12 @@ export function OgCard({ data, appleIconSrc }: OgImageProps) {
         flexDirection: "column",
         width: OG_CARD_WIDTH,
         height: OG_CARD_HEIGHT,
-        background: "#07060f",
+        background: "#0d1117",
         position: "relative",
         fontFamily: "Geist",
         overflow: "hidden",
         paddingTop: PAD,
         paddingBottom: PAD,
-        paddingLeft: PAD,
-        paddingRight: PAD,
       }}
     >
 
