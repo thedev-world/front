@@ -3,14 +3,24 @@ export type OgCardData = {
   avatarUrl: string | null
   islandLabel: string
   level: number
-  xpPercent: number
   cellCount: number
   className: string
   islandRank: number
   globalRank: number
+  commitsAlltime: number
+  prsContributionsAlltime: number
+  reviewsAlltime: number
+  privateContributionsAlltime: number
+  starsReceivedCapped: number
 }
 
 export type OgImageProps = {
   data: OgCardData
-  planetImageSrc: string | null
+  appleIconSrc: string | null
+}
+
+export type OgGithubStat = {
+  value: number
+  label: string
+  icon: "commit" | "pr" | "review" | "private" | "star"
 }
