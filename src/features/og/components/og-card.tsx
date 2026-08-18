@@ -28,6 +28,8 @@ const LABEL_COLOR = "rgba(255,255,255,0.38)"
 const VALUE_COLOR = "rgba(255,255,255,0.9)"
 const STAT_ICON_SIZE = 32
 
+const STATS_W = OG_CARD_WIDTH
+
 function githubStatsFromData(data: OgCardData): OgGithubStat[] {
   const candidates: OgGithubStat[] = [
     { value: data.commitsAlltime, label: "Commits", icon: "commit" },
@@ -48,8 +50,16 @@ function gridCols(count: number): number {
   return 3 // 5 stats → 3 + 2
 }
 
-function tileWidth(cols: number): number {
-  return (OG_CARD_WIDTH - PAD * 2 - TILE_GAP * (cols - 1)) / cols
+function splitIntoRows(stats: OgGithubStat[], cols: number): OgGithubStat[][] {
+  const rows: OgGithubStat[][] = []
+  for (let i = 0; i < stats.length; i += cols) {
+    rows.push(stats.slice(i, i + cols))
+  }
+  return rows
+}
+
+function tileWidthForRow(colsInRow: number): number {
+  return (STATS_W - TILE_GAP * (colsInRow - 1)) / colsInRow
 }
 
 function statIcon(type: OgGithubStat["icon"]): ReactNode {
@@ -128,8 +138,8 @@ function footerText(data: OgCardData): string {
 export function OgCard({ data, appleIconSrc }: OgImageProps) {
   const githubStats = githubStatsFromData(data)
   const cols = gridCols(githubStats.length)
-  const tileW = tileWidth(cols)
-  const numRows = Math.ceil(githubStats.length / cols)
+  const rows = splitIntoRows(githubStats, cols)
+  const numRows = rows.length
   const tileH = numRows > 0
     ? Math.floor((STATS_H - TILE_GAP * (numRows - 1)) / numRows)
     : STATS_H
@@ -161,8 +171,8 @@ export function OgCard({ data, appleIconSrc }: OgImageProps) {
         }}
       >
         <OgBrandingHeader appleIconSrc={appleIconSrc} />
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ color: "#ffffff", fontSize: 26, fontWeight: 700, lineHeight: 1 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", paddingLeft: PAD, minWidth: 0, maxWidth: "55%" }}>
+          <span style={{ color: "#ffffff", fontSize: 26, fontWeight: 700, lineHeight: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
             @{data.login}
           </span>
           <span
@@ -172,6 +182,10 @@ export function OgCard({ data, appleIconSrc }: OgImageProps) {
               fontWeight: 600,
               marginTop: 5,
               letterSpacing: "0.3px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "100%",
             }}
           >
             {data.className} on {data.islandLabel} Island
@@ -182,15 +196,27 @@ export function OgCard({ data, appleIconSrc }: OgImageProps) {
       <div
         style={{
           display: "flex",
-          flexWrap: "wrap",
+          flexDirection: "column",
           position: "relative",
           zIndex: 1,
           marginTop: HEADER_GAP,
           gap: TILE_GAP,
         }}
       >
-        {githubStats.map((stat) => (
-          <StatTile key={stat.label} stat={stat} height={tileH} width={tileW} />
+        {rows.map((row) => (
+          <div
+            key={row.map((s) => s.label).join("-")}
+            style={{ display: "flex", gap: TILE_GAP }}
+          >
+            {row.map((stat) => (
+              <StatTile
+                key={stat.label}
+                stat={stat}
+                height={tileH}
+                width={tileWidthForRow(row.length)}
+              />
+            ))}
+          </div>
         ))}
       </div>
 
