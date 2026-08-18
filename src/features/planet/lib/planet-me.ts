@@ -60,3 +60,40 @@ export function buildSnapshotWithMe(
 
   return buildPlanetSnapshot(apiResponse)
 }
+
+/**
+ * Removes a developer from the snapshot (optimistic update after account deletion).
+ *
+ * Rebuilds via the same path as buildSnapshotWithMe so territory layout stays consistent.
+ * No-op when the login is absent from the snapshot.
+ */
+export function buildSnapshotWithoutUser(
+  snapshot: PlanetSnapshot,
+  githubLogin: string,
+): PlanetSnapshot {
+  if (!snapshot.territories.some((t) => t.githubLogin === githubLogin)) {
+    return snapshot
+  }
+
+  const islandsMap: Record<string, [string, number][]> = {}
+  for (const island of snapshot.islands) {
+    islandsMap[island.id] = []
+  }
+  for (const territory of snapshot.territories) {
+    if (territory.githubLogin === githubLogin) continue
+    if (!islandsMap[territory.islandId]) {
+      islandsMap[territory.islandId] = []
+    }
+    islandsMap[territory.islandId].push([
+      territory.githubLogin,
+      territory.cellCount,
+    ])
+  }
+
+  const apiResponse: PlanetApiResponse = {
+    updated_at: snapshot.version,
+    islands: islandsMap,
+  }
+
+  return buildPlanetSnapshot(apiResponse)
+}

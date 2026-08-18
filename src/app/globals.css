@@ -167,8 +167,8 @@
     calc(100% - var(--hud-c)) 100%,
     calc(var(--hud-c) + var(--hud-lnh)) 100%,
     var(--hud-lnh) calc(100% - var(--hud-c)),
-    var(--hud-lnh) 26%,
-    0% 23%,
+    var(--hud-lnh) 38%,
+    0% 35%,
     0% var(--hud-c)
   );
   --foreground: oklch(0.985 0 0);

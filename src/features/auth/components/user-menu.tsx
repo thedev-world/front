@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, FileCode2, LogOut, Share2, User } from "lucide-react"
+import { ChevronDown, FileCode2, LogOut, Share2, User, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
@@ -26,6 +26,7 @@ import { ShareProfileDialog } from "@/features/share/components/share-profile-di
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { BREAKPOINTS, mediaQuery } from "@/lib/breakpoints"
 import { cn } from "@/lib/utils"
+import { DeleteAccountDialog } from "@/features/auth/components/delete-account-dialog"
 
 type Props = {
   user: MeProfile
@@ -34,6 +35,8 @@ type Props = {
 export function UserMenu({ user }: Props) {
   const logoutMutation = useLogout()
   const [shareOpen, setShareOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
   const isMobile = useMediaQuery(mediaQuery.max(BREAKPOINTS.hudMobile))
   const slug = user.player_class.name.trim().toLowerCase() as PlayerClassSlug
   const badge = BADGE_BY_SLUG[slug] ?? PLAYER_CLASS_FALLBACK.badge
@@ -114,7 +117,7 @@ export function UserMenu({ user }: Props) {
           render={
             <Link href="/profile">
               <User size={13} className="text-hi" />
-              View my profile
+              My profile
             </Link>
           }
         />
@@ -135,12 +138,17 @@ export function UserMenu({ user }: Props) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuDestructiveItem
+        <DropdownMenuItem
           disabled={logoutMutation.isPending}
           onClick={() => void logoutMutation.mutate()}
         >
-          <LogOut size={13} className="shrink-0" />
+          <LogOut size={13} className="text-hi" />
           Logout
+        </DropdownMenuItem>
+
+        <DropdownMenuDestructiveItem onClick={() => setIsDeleteDialogOpen(true)}>
+          <Trash2 size={13} className="shrink-0" />
+          Delete account
         </DropdownMenuDestructiveItem>
       </DropdownMenuContent>
 
@@ -149,6 +157,8 @@ export function UserMenu({ user }: Props) {
         open={shareOpen}
         onOpenChange={setShareOpen}
       />
+
+      <DeleteAccountDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} />
     </DropdownMenu>
   )
 }
