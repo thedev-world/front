@@ -1,21 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Box,
-  GitCommit,
-  GitFork,
-  GitPullRequest,
-  Loader2,
-  Lock,
-  MessageSquare,
-  Star,
-  Users,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/features/auth/api/use-me";
-import type { MeProfile } from "@/features/auth/types/me";
+import {
+  GITHUB_PROFILE_STATS,
+  type GitHubStatDefinition,
+} from "@/features/developer/lib/github-display-stats";
+import { GITHUB_STAT_LUCIDE_ICONS } from "@/features/developer/lib/github-stat-icons";
 import { formatFullNumber } from "@/features/profile/lib/format";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 
@@ -24,26 +18,16 @@ const COUNT_START_DELAY_MS = 300;
 const COUNT_STAGGER_MS = 80;
 const HOLD_AFTER_COUNT_MS = 1400;
 
-type StatDef = {
-  label: string;
-  icon: LucideIcon;
-  getValue: (profile: MeProfile) => number;
-};
+type ScanStatDef = GitHubStatDefinition & { icon: LucideIcon };
 
-const GITHUB_STATS: StatDef[] = [
-  { label: "Commits",         icon: GitCommit,     getValue: (p) => p.commits_alltime },
-  { label: "Pull Requests",   icon: GitPullRequest,getValue: (p) => p.prs_contributions_alltime },
-  { label: "Reviews",         icon: MessageSquare, getValue: (p) => p.reviews_alltime },
-  { label: "Private activity",icon: Lock,          getValue: (p) => p.private_contributions_alltime },
-  { label: "Stars",           icon: Star,          getValue: (p) => p.stars_received_capped },
-  { label: "Followers",       icon: Users,         getValue: (p) => p.followers },
-  { label: "Forks",           icon: GitFork,       getValue: (p) => p.forks_received },
-  { label: "Repos",           icon: Box,           getValue: (p) => p.owned_non_fork_repos_count },
-];
+const GITHUB_SCAN_STATS: ScanStatDef[] = GITHUB_PROFILE_STATS.map((stat) => ({
+  ...stat,
+  icon: GITHUB_STAT_LUCIDE_ICONS[stat.key],
+}));
 
 export const SCAN_SEQUENCE_MS =
   COUNT_START_DELAY_MS +
-  (GITHUB_STATS.length - 1) * COUNT_STAGGER_MS +
+  (GITHUB_SCAN_STATS.length - 1) * COUNT_STAGGER_MS +
   COUNT_DURATION_MS +
   HOLD_AFTER_COUNT_MS;
 
@@ -52,7 +36,7 @@ function ScanStatCell({
   value,
   index,
 }: {
-  stat: StatDef;
+  stat: ScanStatDef;
   value: number;
   index: number;
 }) {
@@ -98,7 +82,7 @@ export function StepGithubScan({ onComplete }: Props) {
   const [allDone, setAllDone] = useState(false);
 
   const countEnd = COUNT_START_DELAY_MS +
-    (GITHUB_STATS.length - 1) * COUNT_STAGGER_MS +
+    (GITHUB_SCAN_STATS.length - 1) * COUNT_STAGGER_MS +
     COUNT_DURATION_MS;
 
   useEffect(() => {
@@ -130,9 +114,9 @@ export function StepGithubScan({ onComplete }: Props) {
       </div>
 
       <div className="grid w-full max-w-2xl grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {GITHUB_STATS.map((stat, index) => (
+        {GITHUB_SCAN_STATS.map((stat, index) => (
           <ScanStatCell
-            key={stat.label}
+            key={stat.key}
             stat={stat}
             value={stat.getValue(me)}
             index={index}

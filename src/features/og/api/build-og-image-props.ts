@@ -1,4 +1,5 @@
 import { fetchPublicDeveloperServer } from "@/features/developer/api/public-developer-server"
+import { resolveGitHubOgStats } from "@/features/developer/lib/github-display-stats"
 import { getIslandLabel } from "@/features/onboarding/lib/island-image"
 import { computeDeveloperRanks } from "@/features/planet/lib/compute-developer-ranks"
 import type { OgImageProps } from "../types"
@@ -46,11 +47,7 @@ export async function buildOgImageProps(login: string): Promise<BuildResult> {
         className: user.player_class.name,
         islandRank,
         globalRank,
-        commitsAlltime: user.commits_alltime,
-        prsContributionsAlltime: user.prs_contributions_alltime,
-        reviewsAlltime: user.reviews_alltime,
-        privateContributionsAlltime: user.private_contributions_alltime,
-        starsReceivedCapped: user.stars_received_capped,
+        githubStats: resolveGitHubOgStats(user),
       },
     },
   }

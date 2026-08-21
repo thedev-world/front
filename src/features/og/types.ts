@@ -1,3 +1,5 @@
+import type { ResolvedGitHubStat } from "@/features/developer/lib/github-display-stats"
+
 export type OgCardData = {
   login: string
   avatarUrl: string | null
@@ -7,11 +9,7 @@ export type OgCardData = {
   className: string
   islandRank: number
   globalRank: number
-  commitsAlltime: number
-  prsContributionsAlltime: number
-  reviewsAlltime: number
-  privateContributionsAlltime: number
-  starsReceivedCapped: number
+  githubStats: ResolvedGitHubStat[]
 }
 
 export type OgImageProps = {
@@ -19,8 +17,10 @@ export type OgImageProps = {
   appleIconSrc: string | null
 }
 
+export type OgGithubStatIcon = "commit" | "pr" | "review" | "private" | "star"
+
 export type OgGithubStat = {
   value: number
   label: string
-  icon: "commit" | "pr" | "review" | "private" | "star"
+  icon: OgGithubStatIcon
 }

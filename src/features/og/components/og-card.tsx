@@ -2,9 +2,10 @@
 
 import type { ReactNode } from "react"
 
+import type { GitHubStatKey } from "@/features/developer/lib/github-display-stats"
 import { HUD_BORDER_GRADIENT, OG_CARD_HEIGHT, OG_CARD_WIDTH } from "../constants"
 import { formatOgNumber } from "../lib/format-number"
-import type { OgCardData, OgGithubStat, OgImageProps } from "../types"
+import type { OgCardData, OgGithubStat, OgGithubStatIcon, OgImageProps } from "../types"
 import { OgBrandingHeader } from "./shared/og-branding-header"
 import {
   OgIconCommit,
@@ -30,15 +31,23 @@ const STAT_ICON_SIZE = 32
 
 const STATS_W = OG_CARD_WIDTH
 
+const OG_STAT_ICON_BY_KEY: Record<GitHubStatKey, OgGithubStatIcon | null> = {
+  commits: "commit",
+  pullRequests: "pr",
+  reviews: "review",
+  privateActivity: "private",
+  stars: "star",
+  followers: null,
+  forks: null,
+  repos: null,
+}
+
 function githubStatsFromData(data: OgCardData): OgGithubStat[] {
-  const candidates: OgGithubStat[] = [
-    { value: data.commitsAlltime, label: "Commits", icon: "commit" },
-    { value: data.prsContributionsAlltime, label: "PRs", icon: "pr" },
-    { value: data.reviewsAlltime, label: "Reviews", icon: "review" },
-    { value: data.privateContributionsAlltime, label: "PV activity", icon: "private" },
-    { value: data.starsReceivedCapped, label: "Stars", icon: "star" },
-  ]
-  return candidates.filter((s) => s.value > 0)
+  return data.githubStats.flatMap((stat) => {
+    const icon = OG_STAT_ICON_BY_KEY[stat.key]
+    if (!icon) return []
+    return [{ value: stat.value, label: stat.label, icon }]
+  })
 }
 
 /** Pick column count so tiles stay large — max 5 stats (commits, PRs, reviews, PV, stars). */
@@ -62,7 +71,7 @@ function tileWidthForRow(colsInRow: number): number {
   return (STATS_W - TILE_GAP * (colsInRow - 1)) / colsInRow
 }
 
-function statIcon(type: OgGithubStat["icon"]): ReactNode {
+function statIcon(type: OgGithubStatIcon): ReactNode {
   switch (type) {
     case "commit":  return <OgIconCommit size={STAT_ICON_SIZE} />
     case "pr":      return <OgIconPullRequest size={STAT_ICON_SIZE} />
