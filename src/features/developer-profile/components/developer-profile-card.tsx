@@ -1,18 +1,9 @@
 "use client"
 
 import {
-  Box,
-  GitCommit,
-  GitFork,
-  GitPullRequest,
   Globe,
   Hexagon,
-  Lock,
   MapPin,
-  MessageSquare,
-  Star,
-  TriangleAlert,
-  Users,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -31,6 +22,7 @@ import {
   type PlayerClassSlug,
 } from "@/features/developer/lib/player-class"
 import type { DeveloperPublicProfile } from "@/features/developer/types/developer-public"
+import { GitHubStatsGrid } from "@/features/developer/components/github-stats-grid"
 import { getIslandLabel } from "@/features/onboarding/lib/island-image"
 import { CommitFarmAlert } from "@/features/profile/components/commit-farm-alert"
 import { cn } from "@/lib/utils"
@@ -144,30 +136,7 @@ function ProfileContent({
           GitHub stats
         </h3>
         {isFarmed && <CommitFarmAlert size="compact" />}
-        <div className="grid grid-cols-2 gap-2">
-          <StatItem
-            icon={<GitCommit />}
-            label="Commits"
-            value={data.commits_alltime}
-            animate
-            badge={
-              isFarmed ? (
-                <Tag
-                  label="Flagged activity"
-                  icon={<TriangleAlert size={10} className="shrink-0 text-amber-400/70" strokeWidth={1.5} />}
-                  variant="warning"
-                />
-              ) : undefined
-            }
-          />
-          <StatItem icon={<GitPullRequest />} label="Pull Requests" value={data.prs_contributions_alltime} animate delay={40} />
-          <StatItem icon={<MessageSquare />} label="Reviews" value={data.reviews_alltime} animate delay={80} />
-          <StatItem icon={<Lock />} label="Private activity" value={data.private_contributions_alltime} animate delay={120} />
-          <StatItem icon={<Star />} label="Stars" value={data.stars_received_capped} animate delay={160} />
-          <StatItem icon={<Users />} label="Followers" value={data.followers} animate delay={200} />
-          <StatItem icon={<GitFork />} label="Forks" value={data.forks_received} animate delay={240} />
-          <StatItem icon={<Box />} label="Repos" value={data.owned_non_fork_repos_count} animate delay={280} />
-        </div>
+        <GitHubStatsGrid source={data} animate showFarmBadge={isFarmed} />
       </div>
     </>
   )

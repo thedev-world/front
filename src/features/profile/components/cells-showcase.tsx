@@ -1,22 +1,13 @@
 "use client";
 
 import {
-  Box,
-  GitCommit,
-  GitFork,
-  GitPullRequest,
   Hexagon,
-  Lock,
-  MessageSquare,
-  Star,
-  TriangleAlert,
-  Users,
 } from "lucide-react";
 import { BadgeGlow } from "@/components/ui/badge-glow";
 import { HudReadoutShell } from "@/components/ui/hud-panel";
 import { Tag } from "@/components/ui/tag";
-import { StatItem } from "@/components/ui/stat-item";
 import type { MeProfile } from "@/features/auth/types/me";
+import { GitHubStatsGrid } from "@/features/developer/components/github-stats-grid";
 import { getIslandImagePath, getIslandLabel } from "@/features/onboarding/lib/island-image";
 import { useCountUp } from "@/features/profile/lib/use-count-up";
 import { CommitFarmAlert } from "@/features/profile/components/commit-farm-alert";
@@ -125,31 +116,11 @@ export function CellsShowcase({ profile }: Props) {
           <h3 className="ticker mb-6 text-sm font-medium uppercase tracking-widest text-foreground/70">
             Stats
           </h3>
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-            <StatItem
-              icon={<GitCommit />}
-              label="Commits"
-              value={profile.commits_alltime}
-              animate
-              delay={0}
-              badge={
-                isFarmed ? (
-                  <Tag
-                    label="Flagged activity"
-                    icon={<TriangleAlert size={10} className="shrink-0 text-amber-400/70" strokeWidth={1.5} />}
-                    variant="warning"
-                  />
-                ) : undefined
-              }
-            />
-            <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} animate delay={40} />
-            <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} animate delay={80} />
-            <StatItem icon={<Lock />} label="PV activity" value={profile.private_contributions_alltime} animate delay={120} />
-            <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} animate delay={160} />
-            <StatItem icon={<Users />} label="Followers" value={profile.followers} animate delay={200} />
-            <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} animate delay={240} />
-            <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} animate delay={280} />
-          </div>
+          <GitHubStatsGrid
+            source={profile}
+            animate
+            showFarmBadge={isFarmed}
+          />
         </div>
         </div>
       </HudReadoutShell>
