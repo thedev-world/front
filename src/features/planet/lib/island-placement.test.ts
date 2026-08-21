@@ -51,7 +51,7 @@ describe("buildPlanetSnapshot — territory growth", () => {
   it("produces no severe interior holes (surrounded on 6 sides)", () => {
     const devs: [string, number][] = Array.from({ length: 50 }, (_, i) => [
       `dev_${i}`,
-      Math.floor(Math.random() * 25) + 3,
+      (i * 7 + 3) % 25 + 3,
     ])
     const snapshot = buildPlanetSnapshot(makeFrontendIsland(devs))
 
