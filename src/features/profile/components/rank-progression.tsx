@@ -8,6 +8,7 @@ import { SectionTickerHeading } from "@/components/ui/section-ticker-heading";
 import {
   PLAYER_CLASS_FALLBACK,
   type PlayerClassMeta,
+  computeRankSpineProgress,
   resolvePlayerClass,
 } from "@/features/developer/lib/player-class";
 import { usePlayerClasses } from "@/features/developer/api/use-player-classes";
@@ -23,19 +24,14 @@ export function RankProgression({ profile }: Props) {
   const { data: playerClasses } = usePlayerClasses();
   const classes = playerClasses ?? [PLAYER_CLASS_FALLBACK];
   const current = resolvePlayerClass(profile.player_class.name, classes);
-  const percentInCurrent = Math.max(
-    0,
-    Math.min(100, profile.xp_progress.percent),
-  );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const n = classes.length;
-  // Progress along spine from tier 1 -> tier n (n−1 segments), matched to XP %
   const p = Math.min(
     1,
     Math.max(
       0,
-      (current.tier - 1 + percentInCurrent / 100) / Math.max(1, n - 1),
+      computeRankSpineProgress(profile.xp_progress.level, current, classes),
     ),
   );
 
@@ -156,7 +152,6 @@ export function RankProgression({ profile }: Props) {
                           key={rank.slug}
                           rank={rank}
                           state={state}
-                          playerLevel={profile.xp_progress.level}
                         />
                       );
                     })}
@@ -174,17 +169,12 @@ export function RankProgression({ profile }: Props) {
 function RankNode({
   rank,
   state,
-  playerLevel,
 }: {
   rank: PlayerClassMeta;
   state: NodeState;
-  playerLevel: number;
 }) {
   const locked = state === "locked";
-  const levelLabel =
-    state === "current"
-      ? `LVL ${playerLevel}`
-      : `LVL ${String(rank.requiredLevel).padStart(2, "0")}`;
+  const levelLabel = `LVL ${String(rank.requiredLevel).padStart(2, "0")}`;
 
   return (
     <li

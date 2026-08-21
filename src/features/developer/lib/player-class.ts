@@ -56,6 +56,27 @@ export function nextPlayerClass(
   return classes.find((c) => c.tier === current.tier + 1) ?? null;
 }
 
+/** Progress [0, 1] along the rank rail based on level between tier thresholds. */
+export function computeRankSpineProgress(
+  playerLevel: number,
+  current: PlayerClassMeta,
+  classes: PlayerClassMeta[],
+): number {
+  const n = classes.length;
+  const next = classes.find((c) => c.tier === current.tier + 1);
+  if (!next) return 1;
+
+  const segmentProgress = Math.min(
+    1,
+    Math.max(
+      0,
+      (playerLevel - current.requiredLevel) /
+        (next.requiredLevel - current.requiredLevel),
+    ),
+  );
+  return Math.min(1, (current.tier - 1 + segmentProgress) / Math.max(1, n - 1));
+}
+
 /**
  * Loads a badge image and waits for full decode so it paints instantly on display.
  * Uses the same static URL as BadgeGlow with unoptimized, shares the HTTP cache.
