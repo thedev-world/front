@@ -3,7 +3,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMe, meQueryKey } from "./use-me";
-import { syncUser } from "./sync-user";
+import { syncUser, GitHubReauthRequiredError } from "./sync-user";
+import { redirectToGitHubOAuth } from "../lib/github-oauth";
 import { useSyncReveal } from "../lib/sync-reveal-context";
 
 const SYNC_THROTTLE_MS = 30000; // 30 seconds
@@ -53,6 +54,13 @@ export function useAuthSync() {
         setPendingProgress(result.progress);
       }
     } catch (err) {
+      if (err instanceof GitHubReauthRequiredError) {
+        redirectToGitHubOAuth({
+          returnTo: `${window.location.pathname}${window.location.search}`,
+          promptConsent: true,
+        });
+        return;
+      }
       console.error("Background sync failed:", err);
     }
   }, [me, queryClient, setPendingProgress]);

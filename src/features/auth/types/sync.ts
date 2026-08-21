@@ -7,6 +7,7 @@ export type SyncXpBreakdownDelta = {
   stars: number;
   forks: number;
   followers: number;
+  repos: number;
   tenure_years_bonus: number;
 };
 

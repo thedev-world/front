@@ -25,6 +25,34 @@ export function HudReadoutShell({
   )
 }
 
+type SplitSegment = "start" | "end"
+
+/** Half of a merged readout, chamfers on outer left (start) or outer right (end). */
+export function HudSplitReadoutPanel({
+  segment,
+  children,
+  className,
+  innerClassName,
+  ...props
+}: ShellProps & { segment: SplitSegment }) {
+  const seg = segment === "start" ? "start" : "end"
+  return (
+    <div className={cn("min-h-0", className)} {...props}>
+      <div className={cn("hud-readout-split-panel-border", `hud-readout-split-panel-border--${seg}`)}>
+        <div
+          className={cn(
+            "hud-readout-split-panel-inner",
+            `hud-readout-split-panel-inner--${seg}`,
+            innerClassName,
+          )}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Top-center dock — chamfered panel merged into the frame notch. */
 export function HudTopDock({
   children,

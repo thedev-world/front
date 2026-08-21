@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { BadgeGlow } from "@/components/ui/badge-glow";
+import { HudReadoutShell } from "@/components/ui/hud-panel";
 import { Tag } from "@/components/ui/tag";
 import { StatItem } from "@/components/ui/stat-item";
 import type { MeProfile } from "@/features/auth/types/me";
@@ -36,129 +37,122 @@ export function CellsShowcase({ profile }: Props) {
     >
       {isFarmed && <CommitFarmAlert size="full" />}
 
-      <div className="relative overflow-hidden border border-white/[0.08] bg-white/[0.02]">
-
-        {/* Ambient glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-20 -top-20 size-64 rounded-full opacity-30"
-          style={{
-            background: "radial-gradient(circle, oklch(0.72 0.19 288 / 0.25) 0%, transparent 70%)",
-            filter: "blur(24px)",
-          }}
-        />
-
+      <HudReadoutShell innerClassName="relative overflow-hidden">
         <div className="relative z-10 grid divide-y divide-white/[0.06] sm:grid-cols-[1fr_1px_1fr] sm:divide-x sm:divide-y-0">
+        <div className="relative overflow-hidden px-8 py-10 sm:px-10 lg:px-12 lg:py-12">
+          {/* Ambient glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-20 -top-20 size-64 rounded-full opacity-30"
+            style={{
+              background: "radial-gradient(circle, oklch(0.72 0.19 288 / 0.25) 0%, transparent 70%)",
+              filter: "blur(24px)",
+            }}
+          />
 
-          {/* ── Left: Territory ── */}
-          <div className="relative overflow-hidden px-8 py-10 sm:px-10 lg:px-12 lg:py-12">
-
-            {/* Island image — decorative, bottom-right, clipped */}
-            {islandSrc && (
-              <>
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 hidden sm:block"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at 100% 100%, transparent 30%, oklch(0.08 0 0 / 0.85) 70%)",
-                  }}
-                />
-                <div className="pointer-events-none absolute -bottom-8 -right-12 hidden sm:block" aria-hidden>
-                  <BadgeGlow
-                    src={islandSrc}
-                    alt=""
-                    width={280}
-                    height={280}
-                    intensity="strong"
-                    className="w-[220px] opacity-40"
-                    imageClassName="w-full object-contain"
-                    glowClassName="scale-[1.2] opacity-40 blur-[24px]"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="relative z-10 flex flex-col gap-6">
-              <div className="flex items-center justify-between gap-4">
-                <h2
-                  id="cells-heading"
-                  className="ticker text-sm font-medium uppercase tracking-widest text-foreground/70"
-                >
-                  Territory
-                </h2>
-                {islandLabel && <Tag label={`${islandLabel} Islands`} />}
-              </div>
-
-              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-                Each commit, review, and contribution anchors a cell to your
-                territory across the network.
-              </p>
-
-              {/* Hexagon cell count */}
-              <div className="relative flex w-fit items-center justify-center">
-                <Hexagon
-                  aria-hidden
-                  className="text-hi"
-                  strokeWidth={0.75}
-                  style={{
-                    width: "clamp(7rem, 14vw, 9rem)",
-                    height: "clamp(7rem, 14vw, 9rem)",
-                    filter: "drop-shadow(0 0 18px oklch(0.72 0.19 288 / 0.35))",
-                  }}
-                />
-                <div className="absolute flex flex-col items-center gap-0.5">
-                  <span
-                    className="font-semibold leading-none tracking-tight text-hi ticker-tabular"
-                    style={{ fontSize: "clamp(1.5rem, 3.5vw, 2rem)" }}
-                  >
-                    {Math.round(cellsDisplay)}
-                  </span>
-                  <span className="ticker text-xs uppercase tracking-widest text-muted-foreground">
-                    cells
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div className="hidden bg-white/[0.06] sm:block" aria-hidden />
-
-          <div className="px-8 py-10 sm:px-10 lg:px-12 lg:py-12">
-            <h3 className="ticker mb-6 text-sm font-medium uppercase tracking-widest text-foreground/70">
-              Stats
-            </h3>
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-              <StatItem
-                icon={<GitCommit />}
-                label="Commits"
-                value={profile.commits_alltime}
-                animate
-                delay={0}
-                badge={
-                  isFarmed ? (
-                    <Tag
-                      label="Flagged activity"
-                      icon={<TriangleAlert size={10} className="shrink-0 text-amber-400/70" strokeWidth={1.5} />}
-                      variant="warning"
-                    />
-                  ) : undefined
-                }
+          {/* Island image — decorative, bottom-right, clipped */}
+          {islandSrc && (
+            <>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 hidden sm:block"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at 100% 100%, transparent 30%, oklch(0.08 0 0 / 0.85) 70%)",
+                }}
               />
-              <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} animate delay={40} />
-              <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} animate delay={80} />
-              <StatItem icon={<Lock />} label="PV activity" value={profile.private_contributions_alltime} animate delay={120} />
-              <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} animate delay={160} />
-              <StatItem icon={<Users />} label="Followers" value={profile.followers} animate delay={200} />
-              <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} animate delay={240} />
-              <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} animate delay={280} />
+              <div className="pointer-events-none absolute -bottom-8 -right-12 hidden sm:block" aria-hidden>
+                <BadgeGlow
+                  src={islandSrc}
+                  alt=""
+                  width={280}
+                  height={280}
+                  intensity="strong"
+                  className="w-[220px] opacity-40"
+                  imageClassName="w-full object-contain"
+                  glowClassName="scale-[1.2] opacity-40 blur-[24px]"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="relative z-10 flex flex-col gap-6">
+            <div className="flex items-center justify-between gap-4">
+              <h2
+                id="cells-heading"
+                className="ticker text-sm font-medium uppercase tracking-widest text-foreground/70"
+              >
+                Territory
+              </h2>
+              {islandLabel && <Tag label={`${islandLabel} Islands`} />}
+            </div>
+
+            <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+              Each commit, review, and contribution anchors a cell to your
+              territory across the network.
+            </p>
+
+            {/* Hexagon cell count */}
+            <div className="relative flex w-fit items-center justify-center">
+              <Hexagon
+                aria-hidden
+                className="text-hi"
+                strokeWidth={0.75}
+                style={{
+                  width: "clamp(7rem, 14vw, 9rem)",
+                  height: "clamp(7rem, 14vw, 9rem)",
+                  filter: "drop-shadow(0 0 18px oklch(0.72 0.19 288 / 0.35))",
+                }}
+              />
+              <div className="absolute flex flex-col items-center gap-0.5">
+                <span
+                  className="font-semibold leading-none tracking-tight text-hi ticker-tabular"
+                  style={{ fontSize: "clamp(1.5rem, 3.5vw, 2rem)" }}
+                >
+                  {Math.round(cellsDisplay)}
+                </span>
+                <span className="ticker text-xs uppercase tracking-widest text-muted-foreground">
+                  cells
+                </span>
+              </div>
             </div>
           </div>
-
         </div>
-      </div>
+
+        <div className="hidden bg-white/[0.06] sm:block" aria-hidden />
+
+        <div className="px-8 py-10 sm:px-10 lg:px-12 lg:py-12">
+          <h3 className="ticker mb-6 text-sm font-medium uppercase tracking-widest text-foreground/70">
+            Stats
+          </h3>
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+            <StatItem
+              icon={<GitCommit />}
+              label="Commits"
+              value={profile.commits_alltime}
+              animate
+              delay={0}
+              badge={
+                isFarmed ? (
+                  <Tag
+                    label="Flagged activity"
+                    icon={<TriangleAlert size={10} className="shrink-0 text-amber-400/70" strokeWidth={1.5} />}
+                    variant="warning"
+                  />
+                ) : undefined
+              }
+            />
+            <StatItem icon={<GitPullRequest />} label="Pull Requests" value={profile.prs_contributions_alltime} animate delay={40} />
+            <StatItem icon={<MessageSquare />} label="Reviews" value={profile.reviews_alltime} animate delay={80} />
+            <StatItem icon={<Lock />} label="PV activity" value={profile.private_contributions_alltime} animate delay={120} />
+            <StatItem icon={<Star />} label="Stars" value={profile.stars_received_capped} animate delay={160} />
+            <StatItem icon={<Users />} label="Followers" value={profile.followers} animate delay={200} />
+            <StatItem icon={<GitFork />} label="Forks" value={profile.forks_received} animate delay={240} />
+            <StatItem icon={<Box />} label="Repos" value={profile.owned_non_fork_repos_count} animate delay={280} />
+          </div>
+        </div>
+        </div>
+      </HudReadoutShell>
     </section>
   );
 }
-
