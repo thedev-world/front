@@ -10,42 +10,46 @@ import { useSyncReveal } from "../lib/sync-reveal-context";
 const SYNC_THROTTLE_MS = 30000; // 30 seconds
 
 /**
- * Hook that manages the automatic synchronization of user data.
- * It triggers a sync on mount and when the tab becomes visible again,
- * but only if the user is authenticated, the last sync was more than 30s ago,
- * and the server-side cooldown (retry_after) has elapsed.
- * When a meaningful XP diff is detected, it queues a rank reveal animation.
+ * Automatic GitHub score sync on mount and tab focus.
+ * Exposes waitForSync() so onboarding can await the first sync before completing.
  */
 export function useAuthSync() {
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const lastSyncTime = useRef<number>(0);
-  const retryAfter = useRef<number>(0); // timestamp ms from server cooldown
+  const retryAfter = useRef<number>(0);
+  const syncInFlightRef = useRef<Promise<void> | null>(null);
   const { setPendingProgress } = useSyncReveal();
 
-  const performSync = useCallback(async () => {
-    if (!me) return;
+  const runSync = useCallback(
+    async ({
+      bypassThrottle = false,
+      invalidateOnCooldown = false,
+    }: { bypassThrottle?: boolean; invalidateOnCooldown?: boolean } = {}) => {
+      if (!me) return;
 
-    const now = Date.now();
-    if (now - lastSyncTime.current < SYNC_THROTTLE_MS) return;
-    if (now < retryAfter.current) return;
+      const now = Date.now();
+      if (!bypassThrottle) {
+        if (now - lastSyncTime.current < SYNC_THROTTLE_MS) return;
+        if (now < retryAfter.current) return;
+      }
 
-    lastSyncTime.current = now;
+      lastSyncTime.current = now;
 
-    try {
       const result = await syncUser();
 
       if (!result.sync_performed) {
-        // Store the server cooldown so we don't hammer the API
         if (result.cooldown_active && result.retry_after) {
           retryAfter.current = new Date(result.retry_after).getTime();
+        }
+        if (invalidateOnCooldown) {
+          await queryClient.invalidateQueries({ queryKey: meQueryKey, exact: true });
         }
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: meQueryKey, exact: true });
+      await queryClient.invalidateQueries({ queryKey: meQueryKey, exact: true });
 
-      // Trigger reveal only on incremental sync with a real XP gain
       if (
         !result.first_sync &&
         result.progress !== null &&
@@ -53,37 +57,86 @@ export function useAuthSync() {
       ) {
         setPendingProgress(result.progress);
       }
-    } catch (err) {
-      if (err instanceof GitHubReauthRequiredError) {
-        redirectToGitHubOAuth({
-          returnTo: `${window.location.pathname}${window.location.search}`,
-          promptConsent: true,
-        });
-        return;
-      }
-      console.error("Background sync failed:", err);
-    }
-  }, [me, queryClient, setPendingProgress]);
+    },
+    [me, queryClient, setPendingProgress],
+  );
 
-  // Sync on mount or when authentication state changes
+  const performSync = useCallback(async () => {
+    if (syncInFlightRef.current) {
+      return syncInFlightRef.current;
+    }
+
+    const task = (async () => {
+      try {
+        await runSync();
+      } catch (err) {
+        if (err instanceof GitHubReauthRequiredError) {
+          redirectToGitHubOAuth({
+            returnTo: `${window.location.pathname}${window.location.search}`,
+            promptConsent: true,
+          });
+          return;
+        }
+        console.error("Background sync failed:", err);
+        throw err;
+      }
+    })();
+
+    syncInFlightRef.current = task.finally(() => {
+      syncInFlightRef.current = null;
+    });
+
+    return syncInFlightRef.current;
+  }, [runSync]);
+
+  const waitForSync = useCallback(async () => {
+    if (me?.last_sync_at) return;
+
+    if (syncInFlightRef.current) {
+      await syncInFlightRef.current;
+      return;
+    }
+
+    const task = (async () => {
+      try {
+        await runSync({ bypassThrottle: true, invalidateOnCooldown: true });
+      } catch (err) {
+        if (err instanceof GitHubReauthRequiredError) {
+          redirectToGitHubOAuth({
+            returnTo: `${window.location.pathname}${window.location.search}`,
+            promptConsent: true,
+          });
+          return;
+        }
+        console.error("Onboarding sync failed:", err);
+        throw err;
+      }
+    })();
+
+    syncInFlightRef.current = task.finally(() => {
+      syncInFlightRef.current = null;
+    });
+
+    await syncInFlightRef.current;
+  }, [me, runSync]);
+
   useEffect(() => {
     if (me) {
-      performSync();
+      void performSync();
     } else {
       lastSyncTime.current = 0;
       retryAfter.current = 0;
     }
   }, [me, performSync]);
 
-  // Sync when user returns to the tab
   useEffect(() => {
     const handleFocus = () => {
-      if (me) {
-        performSync();
-      }
+      if (me) void performSync();
     };
 
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
   }, [me, performSync]);
+
+  return { waitForSync };
 }

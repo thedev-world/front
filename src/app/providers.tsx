@@ -9,13 +9,12 @@ import {
 } from "@/features/auth/lib/clear-session";
 import { setUnauthorizedBroadcastHandler } from "@/lib/api-client";
 import { makeQueryClient } from "@/lib/query-client";
-import { useAuthSync } from "@/features/auth/api/use-auth-sync";
+import { AuthSyncProvider } from "@/features/auth/lib/auth-sync-context";
 import { useGitHubReauthRedirect } from "@/features/auth/hooks/use-github-reauth-redirect";
 import { SyncRevealProvider } from "@/features/auth/lib/sync-reveal-context";
 import { SyncRevealDialog } from "@/features/onboarding/components/sync-reveal-dialog";
 
 function AuthSyncManager() {
-  useAuthSync();
   useGitHubReauthRedirect();
   return null;
 }
@@ -37,9 +36,11 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SyncRevealProvider>
-        <AuthSyncManager />
-        <SyncRevealDialog />
-        {children}
+        <AuthSyncProvider>
+          <AuthSyncManager />
+          <SyncRevealDialog />
+          {children}
+        </AuthSyncProvider>
       </SyncRevealProvider>
     </QueryClientProvider>
   );
