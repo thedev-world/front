@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StepIslandPicker } from "./step-island-picker";
 import { StepGithubScan } from "./step-github-scan";
 import { LevelReveal } from "./level-reveal";
 import { useUpdateIsland } from "../api/use-update-island";
 import { useCompleteOnboarding } from "../api/use-complete-onboarding";
+import { useWaitForSync } from "@/features/auth/lib/auth-sync-context";
 import { usePlanetStore } from "@/features/planet/stores/planet-store";
 import { usePlayerClasses } from "@/features/developer/api/use-player-classes";
 import { usePreloadImages } from "@/hooks/use-preload-images";
@@ -18,6 +19,9 @@ const TRANSITION_MS = 700;
 export function OnboardingFlow() {
   const [step, setStep] = useState<Step>("island");
   const { data: playerClasses } = usePlayerClasses();
+  const waitForSync = useWaitForSync();
+  const scanDoneRef = useRef(false);
+  const onboardingDoneRef = useRef(false);
 
   usePreloadImages(playerClasses || [], (cls) => cls.badge);
   const [showScanLayer, setShowScanLayer] = useState(false);
@@ -27,27 +31,10 @@ export function OnboardingFlow() {
   const router = useRouter();
   const { mutate: updateIsland, isPending: isUpdatingIsland } =
     useUpdateIsland();
-  const { mutate: completeOnboarding, isPending: isCompletingOnboarding } =
-    useCompleteOnboarding();
+  const { mutateAsync: completeOnboarding } = useCompleteOnboarding();
   const setFromOnboarding = usePlanetStore((s) => s.setFromOnboarding);
 
-  const isConfirming = isUpdatingIsland || isCompletingOnboarding;
-
-  function handleConfirm(island: string) {
-    updateIsland(island, {
-      onSuccess: () => {
-        completeOnboarding(undefined, {
-          onSuccess: () => {
-            setShowScanLayer(true);
-            setScanExit(false);
-            setStep("scan");
-          },
-        });
-      },
-    });
-  }
-
-  const handleScanComplete = useCallback(() => {
+  const startReveal = useCallback(() => {
     setShowRevealLayer(true);
     setScanExit(true);
 
@@ -60,6 +47,40 @@ export function OnboardingFlow() {
       setStep("reveal");
     }, TRANSITION_MS);
   }, []);
+
+  const tryReveal = useCallback(() => {
+    if (scanDoneRef.current && onboardingDoneRef.current) {
+      startReveal();
+    }
+  }, [startReveal]);
+
+  function handleConfirm(island: string) {
+    scanDoneRef.current = false;
+    onboardingDoneRef.current = false;
+
+    updateIsland(island, {
+      onSuccess: () => {
+        setShowScanLayer(true);
+        setScanExit(false);
+        setStep("scan");
+
+        waitForSync()
+          .then(() => completeOnboarding())
+          .then(() => {
+            onboardingDoneRef.current = true;
+            tryReveal();
+          })
+          .catch((err) => {
+            console.error("Onboarding sync failed:", err);
+          });
+      },
+    });
+  }
+
+  const handleScanComplete = useCallback(() => {
+    scanDoneRef.current = true;
+    tryReveal();
+  }, [tryReveal]);
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
@@ -80,7 +101,7 @@ export function OnboardingFlow() {
       {step === "island" && (
         <StepIslandPicker
           onConfirm={handleConfirm}
-          isConfirming={isConfirming}
+          isConfirming={isUpdatingIsland}
         />
       )}
 

@@ -18,6 +18,19 @@ const COUNT_START_DELAY_MS = 300;
 const COUNT_STAGGER_MS = 80;
 const HOLD_AFTER_COUNT_MS = 1400;
 
+function TickerDots({ className }: { className?: string }) {
+  return (
+    <span className={cn("ticker-dots inline-flex items-end gap-1", className)} aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="size-1.5 rounded-full bg-hi shadow-[0_0_6px_oklch(0.72_0.19_288_/_0.55)]"
+        />
+      ))}
+    </span>
+  );
+}
+
 type ScanStatDef = GitHubStatDefinition & { icon: LucideIcon };
 
 const GITHUB_SCAN_STATS: ScanStatDef[] = GITHUB_PROFILE_STATS.map((stat) => ({
@@ -35,15 +48,21 @@ function ScanStatCell({
   stat,
   value,
   index,
+  pending,
 }: {
   stat: ScanStatDef;
   value: number;
   index: number;
+  pending: boolean;
 }) {
   const cellDelay = COUNT_START_DELAY_MS + index * COUNT_STAGGER_MS;
-  const animated = useCountUp(value, { duration: COUNT_DURATION_MS, delay: cellDelay });
+  const animated = useCountUp(value, {
+    duration: COUNT_DURATION_MS,
+    delay: cellDelay,
+    enabled: !pending,
+  });
   const progress = value > 0 ? animated / value : 1;
-  const settled = progress > 0.96;
+  const settled = !pending && progress > 0.96;
 
   return (
     <div
@@ -54,23 +73,27 @@ function ScanStatCell({
         <stat.icon aria-hidden className="size-3.5" />
         <span className="ticker">{stat.label}</span>
       </div>
-      <span
-        className={cn(
-          "mt-5 ticker ticker-tabular text-[clamp(1.6rem,3vw,2.1rem)] font-semibold leading-none",
-          "transition-[color,text-shadow] duration-700",
-          settled ? "text-foreground/80" : "text-hi",
-        )}
-        style={
-          settled
-            ? undefined
-            : {
-                textShadow:
-                  "0 0 16px oklch(0.72 0.19 288 / 0.4), 0 0 40px oklch(0.52 0.20 282 / 0.18)",
-              }
-        }
-      >
-        {formatFullNumber(Math.round(animated))}
-      </span>
+      {pending ? (
+        <TickerDots className="mt-5 h-[clamp(1.6rem,3vw,2.1rem)] items-center" />
+      ) : (
+        <span
+          className={cn(
+            "mt-5 ticker ticker-tabular text-[clamp(1.6rem,3vw,2.1rem)] font-semibold leading-none",
+            "transition-[color,text-shadow] duration-700",
+            settled ? "text-foreground/80" : "text-hi",
+          )}
+          style={
+            settled
+              ? undefined
+              : {
+                  textShadow:
+                    "0 0 16px oklch(0.72 0.19 288 / 0.4), 0 0 40px oklch(0.52 0.20 282 / 0.18)",
+                }
+          }
+        >
+          {formatFullNumber(Math.round(animated))}
+        </span>
+      )}
     </div>
   );
 }
@@ -102,6 +125,8 @@ export function StepGithubScan({ onComplete }: Props) {
     );
   }
 
+  const statsPending = !me.last_sync_at;
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
       <div className="flex flex-col items-center gap-1.5 text-center">
@@ -120,6 +145,7 @@ export function StepGithubScan({ onComplete }: Props) {
             stat={stat}
             value={stat.getValue(me)}
             index={index}
+            pending={statsPending}
           />
         ))}
       </div>
@@ -129,8 +155,9 @@ export function StepGithubScan({ onComplete }: Props) {
         style={{ opacity: allDone ? 1 : 0 }}
       >
         <span className="size-1.5 rounded-full bg-hi shadow-[0_0_8px_oklch(0.72_0.19_288_/_0.7)]" />
-        <span className="ticker text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
+        <span className="ticker flex items-center gap-2 text-[11px] uppercase tracking-[0.26em] text-muted-foreground">
           Computing your rank
+          {statsPending && <TickerDots className="pb-0.5" />}
         </span>
       </div>
     </div>
