@@ -23,7 +23,7 @@ WebGL client and UI for [thedev.world](https://thedev.world/), an interactive 3D
 The world is split into thematic islands based on technical specialties (frontend, backend, infra, etc.).
 Each developer's public activity (commits, pull requests, reviews, stars) determines the size and level of their territory on their chosen island.
 
-This front communicates with the [devplanet-api](https://github.com/thedev-world/api) FastAPI backend to fetch geographic data and scores.
+This front communicates with the [thedevworld-api](https://github.com/thedev-world/api) FastAPI backend to fetch geographic data and scores.
 
 ## Getting started
 
@@ -31,9 +31,9 @@ This front communicates with the [devplanet-api](https://github.com/thedev-world
 
 - Node.js v20+
 - npm 10+
-- A local instance of [devplanet-api](https://github.com/thedev-world/api) running on port `8000`
+- A local instance of [thedevworld-api](https://github.com/thedev-world/api) running on port `8000`
 
-> Local development requires the backend to be running. Check out the [devplanet-api](https://github.com/thedev-world/api) README for setup instructions.
+> Local development requires the backend to be running. Check out the [thedevworld-api](https://github.com/thedev-world/api) README for setup instructions.
 
 ### Installation
 
