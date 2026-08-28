@@ -1,3 +1,4 @@
+import type { NextCellUnlock } from "@/features/auth/types/me"
 import type { DeveloperPreview } from "./developer-preview"
 
 export type DeveloperPublicProfile = DeveloperPreview & {
@@ -18,6 +19,7 @@ export type DeveloperPublicProfile = DeveloperPreview & {
   account_created_at: string
   xp_brut: number
   cell_count: number
+  next_cell_unlock: NextCellUnlock | null
   island: string | null
   is_onboarded: boolean
   last_sync_at: string | null

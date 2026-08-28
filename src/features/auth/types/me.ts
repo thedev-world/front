@@ -5,6 +5,15 @@ export type MeXpProgress = {
   percent: number;
 };
 
+export type NextCellUnlock = {
+  unlock_xp: number;
+  unlock_level: number;
+  xp_remaining: number;
+  in_current_level: boolean;
+  bar_percent: number | null;
+  xp_in_level_at_unlock: number | null;
+};
+
 export type MePlayerClass = {
   name: string;
   phrase: string;
@@ -30,6 +39,7 @@ export type MeProfile = {
   xp_brut: number;
   xp_progress: MeXpProgress;
   cell_count: number;
+  next_cell_unlock: NextCellUnlock | null;
   player_class: MePlayerClass;
   island: string | null;
   is_onboarded: boolean;
