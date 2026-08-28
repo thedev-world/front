@@ -15,6 +15,7 @@ import { createXpMath } from "../lib/xp-math";
 import { useRankRevealSequence } from "../lib/use-rank-reveal-sequence";
 import { useXpConfig } from "../api/use-xp-config";
 import { usePlayerClasses } from "@/features/developer/api/use-player-classes";
+import { XpProgressBar } from "@/features/developer/components/xp-progress-bar";
 import type { SyncDiffSummary } from "@/features/onboarding/types/sync-diff";
 import { preloadBadgeImage } from "@/features/developer/lib/player-class";
 
@@ -252,7 +253,7 @@ export function LevelReveal({
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-2 mb-8">
         <h1
           className={cn(
             "text-[clamp(2rem,5vw,3.25rem)] font-semibold leading-[1.1] tracking-tight",
@@ -291,14 +292,13 @@ export function LevelReveal({
               <Hexagon
                 aria-hidden
                 strokeWidth={1}
-                size={14}
+                size={24}
                 className="text-hi"
-                style={{ filter: "drop-shadow(0 0 6px oklch(0.72 0.19 288 / 0.6))" }}
               />
-              <span className="ticker ticker-tabular text-xs font-medium text-hi">
+              <span className="ticker ticker-tabular text-lg font-medium text-hi">
                 {formatFullNumber(Math.round(animatedCells))}
               </span>
-              <span className="ticker text-[0.62rem] uppercase tracking-[0.28em] text-muted-foreground">
+              <span className="ticker text-sm uppercase tracking-[0.28em] text-muted-foreground">
                 cells
               </span>
             </div>
@@ -322,37 +322,43 @@ export function LevelReveal({
       </div>
 
       <div key={`bar-${segmentIndex}`} className="w-full max-w-xs">
-        <div className="mb-2 flex items-end justify-between text-xs uppercase tracking-[0.26em] text-muted-foreground">
-          <span className="ticker">
+        <div className="mb-2 text-xs uppercase tracking-[0.26em] text-muted-foreground">
+          <div className="ticker flex">
             {isMilestoneSegment && !isComplete
-              ? `xp · unlock ${(nextClass ?? displayClass).name.toLowerCase()}`
-              : "xp · current level"}
-          </span>
-          <span className="ticker ticker-tabular text-hi">
-            {barFillPercent}%
-          </span>
+              ? `xp - unlock ${(nextClass ?? displayClass).name.toLowerCase()}`
+              : "xp"}
+          </div>
         </div>
 
-        <div className="relative h-2 w-full overflow-hidden border border-white/10 bg-white/[0.03]">
-          <div
-            className="absolute inset-y-0 left-0"
-            style={{
-              width: `${barFillPercent}%`,
-              background:
-                "linear-gradient(90deg, oklch(0.52 0.20 282) 0%, oklch(0.72 0.19 288) 60%, oklch(0.78 0.15 292) 100%)",
-              boxShadow:
-                "0 0 12px oklch(0.72 0.19 288 / 0.45), inset 0 0 6px oklch(1 0 0 / 0.2)",
-            }}
+        {isComplete ? (
+          <XpProgressBar
+            percent={finalProgress.percent}
+            nextCellUnlock={me?.next_cell_unlock}
+            barClassName="h-2"
+            animatedFill={false}
           />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(90deg, transparent 0 32px, oklch(0 0 0 / 0.25) 32px 33px)",
-            }}
-          />
-        </div>
+        ) : (
+          <div className="relative h-2 w-full overflow-hidden border border-white/10 bg-white/[0.03]">
+            <div
+              className="absolute inset-y-0 left-0"
+              style={{
+                width: `${barFillPercent}%`,
+                background:
+                  "linear-gradient(90deg, oklch(0.52 0.20 282) 0%, oklch(0.72 0.19 288) 60%, oklch(0.78 0.15 292) 100%)",
+                boxShadow:
+                  "0 0 12px oklch(0.72 0.19 288 / 0.45), inset 0 0 6px oklch(1 0 0 / 0.2)",
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(90deg, transparent 0 32px, oklch(0 0 0 / 0.25) 32px 33px)",
+              }}
+            />
+          </div>
+        )}
 
         <div className="mt-2 flex items-baseline justify-between text-xs">
           {isComplete ? (

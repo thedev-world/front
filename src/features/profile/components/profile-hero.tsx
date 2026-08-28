@@ -66,14 +66,17 @@ export function ProfileHero({ profile }: Props) {
                 </span>
               </div>
             </div>
-            <div className="min-w-0">
-              <XpBar progress={profile.xp_progress} />
+            <div className="min-w-0 overflow-visible">
+              <XpBar
+                progress={profile.xp_progress}
+                nextCellUnlock={profile.next_cell_unlock}
+              />
             </div>
           </div>
 
-          <div className="flex items-baseline gap-2.5 border-t border-white/5 pt-6 text-xs uppercase tracking-[0.26em] text-muted-foreground">
-            <span className="ticker">Total XP</span>
-            <span className="ticker ticker-tabular text-base font-medium normal-case tracking-normal text-foreground/80">
+          <div className="flex items-baseline gap-2 border-t border-white/9 pt-6 uppercase tracking-[0.26em] text-muted-foreground">
+            <span className="ticker text-sm">Total XP - </span>
+            <span className="ticker ticker-tabular text-base font-medium tracking-normal text-foreground/80 text-sm">
               {formatFullNumber(xpDisplay | 0)}
             </span>
           </div>
