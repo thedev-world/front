@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { meQueryKey } from "@/features/auth/api/use-me";
 import type { MeProfile } from "@/features/auth/types/me";
+import { clearEverConnected } from "@/features/auth/lib/returning-user-storage";
 import { buildSnapshotWithoutUser } from "@/features/planet/lib/planet-me";
 import type { PlanetSnapshot } from "@/features/planet/types/snapshot";
 import { apiFetch } from "@/lib/api-client";
@@ -36,6 +37,7 @@ export function useDeleteAccount() {
       }
 
       queryClient.setQueryData(meQueryKey, null);
+      clearEverConnected();
       router.push("/");
     },
   });

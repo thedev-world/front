@@ -3,8 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMe, meQueryKey } from "./use-me";
-import { syncUser, GitHubReauthRequiredError } from "./sync-user";
-import { redirectToGitHubOAuth } from "../lib/github-oauth";
+import { syncUser } from "./sync-user";
 import { useSyncReveal } from "../lib/sync-reveal-context";
 
 const SYNC_THROTTLE_MS = 30000; // 30 seconds
@@ -70,13 +69,6 @@ export function useAuthSync() {
       try {
         await runSync();
       } catch (err) {
-        if (err instanceof GitHubReauthRequiredError) {
-          redirectToGitHubOAuth({
-            returnTo: `${window.location.pathname}${window.location.search}`,
-            promptConsent: true,
-          });
-          return;
-        }
         console.error("Background sync failed:", err);
         throw err;
       }
@@ -101,13 +93,6 @@ export function useAuthSync() {
       try {
         await runSync({ bypassThrottle: true, invalidateOnCooldown: true });
       } catch (err) {
-        if (err instanceof GitHubReauthRequiredError) {
-          redirectToGitHubOAuth({
-            returnTo: `${window.location.pathname}${window.location.search}`,
-            promptConsent: true,
-          });
-          return;
-        }
         console.error("Onboarding sync failed:", err);
         throw err;
       }
