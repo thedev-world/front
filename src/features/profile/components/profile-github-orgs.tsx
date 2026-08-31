@@ -4,8 +4,12 @@ import { Building2 } from "lucide-react";
 
 import { HudReadoutShell } from "@/components/ui/hud-panel";
 import { GitHubSignInButton } from "@/features/auth/components/github-sign-in-button";
+import { useMe } from "@/features/auth/api/use-me";
 
 export function ProfileGitHubOrganizationsCard() {
+  const me = useMe();
+  const orgAccessEnabled = me.data?.github_org_access_enabled ?? false;
+
   return (
     <section className="anim-reveal-up" style={{ animationDelay: "120ms" }}>
       <HudReadoutShell innerClassName="p-5 sm:p-6">
@@ -14,13 +18,15 @@ export function ProfileGitHubOrganizationsCard() {
             <div className="flex items-center gap-2 text-hi">
               <Building2 size={16} aria-hidden />
               <h2 className="ticker text-xs uppercase tracking-[0.24em]">
-                Update GitHub authorization
+                {orgAccessEnabled
+                  ? "Update GitHub authorization"
+                  : "Enable organization access"}
               </h2>
             </div>
             <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">
-              Working in a new organization? Refresh your GitHub authorization to
-              add the organizations you want (read-only) so your work there is
-              included in your score.
+              {orgAccessEnabled
+                ? "Working in a new organization? Refresh your GitHub authorization to add the organizations you want (read-only) so your work there is included in your score."
+                : "Include stars from organizations where you are an admin. This grants read-only access to your GitHub organizations and can be updated anytime."}
             </p>
           </div>
           <GitHubSignInButton
@@ -28,8 +34,9 @@ export function ProfileGitHubOrganizationsCard() {
             className="shrink-0 self-start sm:mt-0.5"
             returnTo="/profile?github_refresh=1"
             promptConsent
+            includeOrgs
           >
-            Update GitHub access
+            {orgAccessEnabled ? "Update GitHub access" : "Enable organization access"}
           </GitHubSignInButton>
         </div>
       </HudReadoutShell>

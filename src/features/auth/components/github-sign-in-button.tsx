@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { getGitHubOAuthStartUrl } from "@/features/auth/lib/github-oauth";
-import { resolveApiUrl } from "@/lib/api-url";
 
 import { GithubIcon } from "./github-icon";
 
@@ -14,6 +13,8 @@ type Props = {
   returnTo?: string;
   /** Force GitHub consent screen (e.g. add organizations). */
   promptConsent?: boolean;
+  /** Request read:org scope to include organization admin repo stars. */
+  includeOrgs?: boolean;
 };
 
 export function GitHubSignInButton({
@@ -22,11 +23,9 @@ export function GitHubSignInButton({
   variant = "secondary",
   returnTo,
   promptConsent = false,
+  includeOrgs = false,
 }: Props) {
-  const href =
-    returnTo || promptConsent
-      ? getGitHubOAuthStartUrl({ returnTo, promptConsent })
-      : resolveApiUrl("/api/v1/auth/github/start");
+  const href = getGitHubOAuthStartUrl({ returnTo, promptConsent, includeOrgs });
 
   return (
     <Button

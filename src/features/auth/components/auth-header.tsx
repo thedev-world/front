@@ -1,7 +1,7 @@
 "use client"
 
-import { GitHubSignInButton } from "./github-sign-in-button"
 import { UserMenu } from "./user-menu"
+import { AuthHeaderSignIn } from "./auth-header-sign-in"
 import { useMe } from "../api/use-me"
 
 export function AuthHeader() {
@@ -14,7 +14,7 @@ export function AuthHeader() {
       {me.data ? (
         <UserMenu user={me.data} />
       ) : (
-        <GitHubSignInButton />
+        <AuthHeaderSignIn />
       )}
     </div>
   )

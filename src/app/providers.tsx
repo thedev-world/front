@@ -10,14 +10,8 @@ import {
 import { setUnauthorizedBroadcastHandler } from "@/lib/api-client";
 import { makeQueryClient } from "@/lib/query-client";
 import { AuthSyncProvider } from "@/features/auth/lib/auth-sync-context";
-import { useGitHubReauthRedirect } from "@/features/auth/hooks/use-github-reauth-redirect";
 import { SyncRevealProvider } from "@/features/auth/lib/sync-reveal-context";
 import { SyncRevealDialog } from "@/features/onboarding/components/sync-reveal-dialog";
-
-function AuthSyncManager() {
-  useGitHubReauthRedirect();
-  return null;
-}
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => makeQueryClient());
@@ -37,7 +31,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <SyncRevealProvider>
         <AuthSyncProvider>
-          <AuthSyncManager />
           <SyncRevealDialog />
           {children}
         </AuthSyncProvider>

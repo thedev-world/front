@@ -3,7 +3,7 @@
 import { DashboardPageHeader } from "@/components/ui/dashboard-page-header";
 import { DashboardPageShell } from "@/components/ui/dashboard-page-shell";
 import { PageScroll } from "@/components/ui/page-scroll";
-import { GitHubReauthRequiredError, useMe } from "@/features/auth/api/use-me";
+import { useMe } from "@/features/auth/api/use-me";
 import { CellsShowcase } from "@/features/profile/components/cells-showcase";
 import { ProfileGitHubOrganizationsCard } from "@/features/profile/components/profile-github-orgs";
 import { ProfileHero } from "@/features/profile/components/profile-hero";
@@ -18,7 +18,6 @@ import { useProfileGitHubRefreshSync } from "@/features/profile/hooks/use-profil
 
 export function ProfileDashboard() {
   const me = useMe();
-  const needsGitHubReauth = me.error instanceof GitHubReauthRequiredError;
   useProfileGitHubRefreshSync();
 
   return (
@@ -29,7 +28,7 @@ export function ProfileDashboard() {
         </div>
       ) : null}
 
-      {!me.isPending && !me.data && me.error && !needsGitHubReauth && (
+      {!me.isPending && !me.data && me.error && (
         <div className="relative flex flex-1 items-center justify-center">
           <ProfileError
             message={
@@ -39,7 +38,7 @@ export function ProfileDashboard() {
         </div>
       )}
 
-      {!me.isPending && !me.data && !me.error && !needsGitHubReauth && (
+      {!me.isPending && !me.data && !me.error && (
         <div className="relative flex flex-1 items-center justify-center">
           <ProfileUnauthorized />
         </div>

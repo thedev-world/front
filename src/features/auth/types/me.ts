@@ -44,6 +44,7 @@ export type MeProfile = {
   island: string | null;
   is_onboarded: boolean;
   avatar_url: string | null;
+  github_org_access_enabled: boolean;
   last_sync_at: string;
   next_sync_at: string | null;
   created_at: string;

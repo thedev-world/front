@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest";
-import {
-  GITHUB_REAUTH_REQUIRED_DETAIL,
-  GitHubReauthRequiredError,
-} from "@/features/auth/lib/github-oauth";
+import { getGitHubOAuthStartUrl } from "@/features/auth/lib/github-oauth";
 
 describe("github-oauth", () => {
-  it("uses the API reauth detail constant", () => {
-    expect(GITHUB_REAUTH_REQUIRED_DETAIL).toBe("github_reauth_required");
+  it("adds include_orgs when requested", () => {
+    const url = getGitHubOAuthStartUrl({ includeOrgs: true });
+    expect(url).toContain("include_orgs=true");
   });
 
-  it("names GitHubReauthRequiredError", () => {
-    const err = new GitHubReauthRequiredError();
-    expect(err.name).toBe("GitHubReauthRequiredError");
-    expect(err.status).toBe(401);
+  it("omits include_orgs by default", () => {
+    const url = getGitHubOAuthStartUrl();
+    expect(url).not.toContain("include_orgs");
   });
 });

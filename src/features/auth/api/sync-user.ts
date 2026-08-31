@@ -1,11 +1,5 @@
 import { apiFetch } from "@/lib/api-client";
-import {
-  assertOkOrThrowAuthError,
-  GitHubReauthRequiredError,
-} from "@/features/auth/lib/github-oauth";
 import type { MeSyncResponse } from "../types/sync";
-
-export { GitHubReauthRequiredError };
 
 /**
  * Trigger a synchronization of the user's data (GitHub profile, stats, etc.)
@@ -16,8 +10,6 @@ export async function syncUser(): Promise<MeSyncResponse> {
     method: "POST",
     passThrough401: true,
   });
-
-  await assertOkOrThrowAuthError(res);
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
