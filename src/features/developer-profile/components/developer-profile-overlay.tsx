@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { usePlanetStore } from "@/features/planet/stores/planet-store"
 
@@ -20,6 +20,7 @@ export function DeveloperProfileOverlay() {
 
   const [renderedLogin, setRenderedLogin] = useState(viewedGithubLogin)
   const [visible, setVisible] = useState(false)
+  const profileOpenRef = useRef(false)
 
   // Sync exit / login switch during render
   if (!viewedGithubLogin && visible) {
@@ -27,17 +28,22 @@ export function DeveloperProfileOverlay() {
   }
   if (viewedGithubLogin && renderedLogin !== viewedGithubLogin) {
     setRenderedLogin(viewedGithubLogin)
-    if (visible) setVisible(false)
   }
 
   // Handle enter/exit transitions
   useEffect(() => {
     if (!viewedGithubLogin) {
+      profileOpenRef.current = false
       const timeout = setTimeout(() => setRenderedLogin(null), EXIT_UNMOUNT_MS)
       return () => clearTimeout(timeout)
     }
 
-    const timeout = setTimeout(() => setVisible(true), ENTER_DELAY_MS)
+    if (profileOpenRef.current) return
+
+    const timeout = setTimeout(() => {
+      setVisible(true)
+      profileOpenRef.current = true
+    }, ENTER_DELAY_MS)
     return () => clearTimeout(timeout)
   }, [viewedGithubLogin])
 
@@ -62,7 +68,9 @@ export function DeveloperProfileOverlay() {
         pointerEvents: visible ? "auto" : "none",
       }}
     >
-      {renderedLogin ? <DeveloperProfileCard login={renderedLogin} /> : null}
+      {renderedLogin && (
+        <DeveloperProfileCard key={renderedLogin} login={renderedLogin} />
+      )}
     </div>
   )
 }
