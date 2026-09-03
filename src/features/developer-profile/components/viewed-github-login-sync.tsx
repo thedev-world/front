@@ -21,7 +21,13 @@ export function ViewedGithubLoginSync({ githubLogin }: Props) {
     setViewedGithubLogin(githubLogin)
     // Deep-link to a developer dossier: skip the cinematic intro, focus straight away.
     if (githubLogin) setIntroPhase("done")
-    return () => setViewedGithubLogin(null)
+    return () => {
+      // Only clear when this route still owns the store value
+      // when switching /u/alice -> /u/bob (old instance unmounts after the new one sets bob)
+      if (usePlanetStore.getState().viewedGithubLogin === githubLogin) {
+        setViewedGithubLogin(null)
+      }
+    }
   }, [githubLogin, setViewedGithubLogin, setIntroPhase])
 
   return null
